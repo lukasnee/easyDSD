@@ -10,6 +10,10 @@
 #include "main.h"
 #define TH_STM32
 
+#ifdef TH_STM32
+#define millis() HAL_GetTick()
+#endif
+
 class Button
 {
     public:
@@ -28,7 +32,7 @@ class Button
             : m_pin(pin), m_dbTime(dbTime), m_puEnable(puEnable), m_invert(invert) {}
 #else
         Button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uint32_t dbTime=25, uint8_t puEnable=true, uint8_t invert=true)
-            : GPIOx(m_GPIOx), GPIO_Pin(m_GPIO_Pin), m_dbTime(dbTime), m_puEnable(puEnable), m_invert(invert) {}
+            : m_GPIOx(GPIOx), m_GPIO_Pin(GPIO_Pin), m_dbTime(dbTime), m_puEnable(puEnable), m_invert(invert) {}
 #endif
         // Initialize a Button object and the pin it's connected to
         void begin();
@@ -67,7 +71,13 @@ class Button
         uint32_t lastChange();
 
     private:
+
+#ifdef TH_STM32
+        GPIO_TypeDef* m_GPIOx;
+		uint16_t m_GPIO_Pin;
+#else
         uint8_t m_pin;          // arduino pin number connected to button
+#endif
         uint32_t m_dbTime;      // debounce time (ms)
         bool m_puEnable;        // internal pullup resistor enabled
         bool m_invert;          // if true, interpret logic low as pressed, else interpret logic high as pressed
@@ -76,13 +86,6 @@ class Button
         bool m_changed;         // state changed since last read
         uint32_t m_time;        // time of current state (ms from millis)
         uint32_t m_lastChange;  // time of last state change (ms)
-
-#ifdef TH_STM32
-        GPIO_TypeDef* m_GPIOx;
-		uint16_t m_GPIO_Pin;
-#endif
-
-
 };
 
 // a derived class for a "push-on, push-off" (toggle) type button.

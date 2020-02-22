@@ -22,11 +22,10 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "th_dsd.hpp"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "dsd.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +54,7 @@ SD_HandleTypeDef hsd;
 
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
-
+extern "C" void th_dsd_start(void);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

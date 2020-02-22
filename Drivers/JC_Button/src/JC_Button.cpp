@@ -10,6 +10,8 @@
 /-----------------------------------------------------------------------*/
 void Button::begin()
 {
+
+
     //pinMode(m_pin, m_puEnable ? INPUT_PULLUP : INPUT);  //todo add pull functionality from stm32
 #ifndef TH_STM32
 	m_state = digitalRead(m_pin);
@@ -30,7 +32,7 @@ void Button::begin()
 bool Button::read()
 {
     uint32_t ms = millis();
-#ifndef STM32
+#ifndef TH_STM32
     bool pinVal = digitalRead(m_pin);
 #else
     bool pinVal = HAL_GPIO_ReadPin(m_GPIOx, m_GPIO_Pin);

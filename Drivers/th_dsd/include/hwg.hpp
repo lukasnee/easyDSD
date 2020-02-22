@@ -1,5 +1,6 @@
 /*
-	Direct Stream Digital (DSD) player core module.
+	Direct Stream Digital (DSD) player - hardware glue.
+	Glue code for your specific hardware (initially designed for STM32F407VE).
 
 	License: GPL 3.0
 	Copyright (C) 2020 Lukas Neverauskis
@@ -14,8 +15,8 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-#include <th_dsd.hpp>
+#ifndef DSD_HWG_H_
+#define DSD_HWG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,32 +28,6 @@ extern "C" {
 }
 #endif
 
-osThreadId defaultTaskHandle;
+/* prototypes of API functions here */
 
-void openDSD::th_dsd_task(void const * argument)
-{
-	openDSD dsd = openDSD::getInstance();
-
-	dsd.buttonsBegin();
-
-	while (1) {
-
-		dsd.buttonUpdate();
-
-		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
-				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(500) | dsd.btn[BTN_OK].wasPressed()));
-		HAL_GPIO_WritePin(LED_D3_GPIO_Port, LED_D3_Pin,
-				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
-
-		osDelay(10);
-	}
-}
-
-void th_dsd_start(void) {
-
-	osThreadDef(th_dsd, th_dsd_task, osPriorityAboveNormal, 0, 1024);
-	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
-
-}
-
-/* end of th_dsd.cpp */
+#endif  // DSD_HWG_H_

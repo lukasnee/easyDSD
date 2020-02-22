@@ -1,6 +1,5 @@
 /*
-	Direct Stream Digital (DSD) player - hardware glue. 
-	Glue code for your specific hardware (initially designed for STM32F407VE).
+	Direct Stream Digital (DSD) player core module.
 
 	License: GPL 3.0
 	Copyright (C) 2020 Lukas Neverauskis
@@ -15,8 +14,14 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#ifndef FILEXP_HPP_
+#define FILEXP_HPP_
 
-#include "th_dsd_hwg.hpp"
+ #ifdef __cplusplus
+ #define EXTERNC extern "C"
+ #else
+ #define EXTERNC
+ #endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,5 +33,10 @@ extern "C" {
 }
 #endif
 
+#include "main.h"
+#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
+#include "cmsis_os.h"		/* cmsis freeRTOS API */
+#include "fatfs.h"			/* FAT32 file system */
+#include <hwg.hpp> 	/* hardware glue code for user to fill */
 
-/* Glue code template for user to fill */
+#endif  // FILEXP_HPP_
