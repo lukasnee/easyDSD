@@ -28,6 +28,8 @@ void th_dsd_start(void); /* start task externally from c source */
 }
 #endif
 
+#ifdef __cplusplus
+
 #include "main.h"
 #include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
 #include "cmsis_os.h"		/* cmsis freeRTOS API */
