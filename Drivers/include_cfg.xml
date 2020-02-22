@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="s,S">
+
+</language>
+<language name="C Source File">
+<includepath>FATFS/App</includepath>
+<includepath>Drivers/CMSIS/Include</includepath>
+<includepath>Drivers/STM32F4xx_HAL_Driver/Inc</includepath>
+<includepath>Core/Inc</includepath>
+<includepath>Drivers/CMSIS/Device/ST/STM32F4xx/Include</includepath>
+<includepath>FATFS/Target</includepath>
+<includepath>Drivers/STM32F4xx_HAL_Driver/Inc/Legacy</includepath>
+<includepath>Middlewares/Third_Party/FatFs/src</includepath>
+<includepath>Drivers/id3lib-3.8.3/zlib/include</includepath>
+<includepath>Drivers/th_dsd</includepath>
+<includepath>Drivers/id3lib-3.8.3/include</includepath>
+<includepath>Drivers/id3lib-3.8.3/include/id3</includepath>
+
+</language>
+<language name="C++ Source File">
+<includepath>FATFS/App</includepath>
+<includepath>Drivers/CMSIS/Include</includepath>
+<includepath>Drivers/STM32F4xx_HAL_Driver/Inc</includepath>
+<includepath>Core/Inc</includepath>
+<includepath>Drivers/CMSIS/Device/ST/STM32F4xx/Include</includepath>
+<includepath>FATFS/Target</includepath>
+<includepath>Drivers/STM32F4xx_HAL_Driver/Inc/Legacy</includepath>
+<includepath>Middlewares/Third_Party/FatFs/src</includepath>
+<includepath>Drivers/id3lib-3.8.3/zlib/include</includepath>
+<includepath>Drivers/th_dsd</includepath>
+<includepath>Drivers/id3lib-3.8.3/include</includepath>
+<includepath>Drivers/id3lib-3.8.3/include/id3</includepath>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="s,S">
+
+</language>
+<language name="C Source File">
+<macro>
+<name>USE_HAL_DRIVER</name><value/>
+</macro>
+<macro>
+<name>DEBUG</name><value/>
+</macro>
+<macro>
+<name>STM32F407xx</name><value/>
+</macro>
+
+</language>
+<language name="C++ Source File">
+<macro>
+<name>USE_HAL_DRIVER</name><value/>
+</macro>
+<macro>
+<name>DEBUG</name><value/>
+</macro>
+<macro>
+<name>STM32F407xx</name><value/>
+</macro>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+</cdtprojectproperties>
