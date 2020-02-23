@@ -33,7 +33,6 @@ void th_dsd_start(void); /* start task externally from c source */
 #include <hwg.hpp>			/* hardware glue code for user to fill */
 
 #include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
-#include "cmsis_os.h"		/* cmsis freeRTOS API */
 #include "fatfs.h"			/* FAT32 file system */
 #include "TFT_ILI9163C.h" 	/* display driver */
 

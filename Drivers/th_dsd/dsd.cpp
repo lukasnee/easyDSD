@@ -32,33 +32,23 @@ osThreadId defaultTaskHandle;
 #include <Adafruit_GFX.h>
 #include <TFT_ILI9163C.h>
 
-// Color definitions
-#define	BLACK   (color_rgb16_t)0x0000
-#define	BLUE    (color_rgb16_t)0x001F
-#define	RED     (color_rgb16_t)0xF800
-#define	GREEN   (color_rgb16_t)0x07E0
-#define CYAN    (color_rgb16_t)0x07FF
-#define MAGENTA (color_rgb16_t)0xF81F
-#define YELLOW  (color_rgb16_t)0xFFE0
-#define WHITE   (color_rgb16_t)0xFFFF
-
 TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
 
 unsigned long testText() {
   tft.fillScreen();
   unsigned long start = millis();
   tft.setCursor(0, 0);
-  tft.setTextColor(WHITE);
+  tft.setTextColor(COLOR_LIME);
   tft.setTextSize(1);
   tft.println("Hello World!");
-  tft.setTextColor(YELLOW);
+  tft.setTextColor(COLOR_YELLOW);
   tft.setTextSize(2);
   tft.println(1234.56);
-  tft.setTextColor(RED);
+  tft.setTextColor(COLOR_RED);
   tft.setTextSize(3);
   tft.println("MAZAFAKA");
   tft.println();
-  tft.setTextColor(GREEN);
+  tft.setTextColor(COLOR_GREEN);
   tft.setTextSize(4);
   tft.println("Hello");
   return millis() - start;
@@ -112,12 +102,11 @@ unsigned long testLines(color_rgb16_t color) {
 void openDSD::th_dsd_task(void const * argument)
 {
 
-
-	  int * foo;
-	  foo = new int;
-	  *foo = 2;
-	  *foo = -8;
-	  delete foo;
+	int * foo = NULL;
+	foo = new int;
+	*foo= 8;
+	*foo= -98;
+	delete foo;
 
 	static openDSD dsd;
 

@@ -18,6 +18,12 @@
 #ifndef DSD_HWG_H_
 #define DSD_HWG_H_
 
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <stdio.h>
+#include <cmsis_os.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,6 +32,9 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+
+
+
 #endif
 
 /* prototypes of API functions here */
@@ -47,18 +56,13 @@ extern DMA_HandleTypeDef hdma_spi1_tx;
 #define TH_STM32
 #define WUCY_OS
 
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <stdio.h>
+
 typedef std::string String;
 typedef char* __FlashStringHelper;
 
 typedef bool boolean;
 #define HIGH true
 #define LOW false
-
-
 
 typedef struct tft_pinout_stm32_{
 
@@ -81,37 +85,10 @@ class Print {
 public:
 
 	virtual size_t write(unsigned char c) = 0;
-
-	void print(const String str) {
-
-		for (auto it = str.begin(); it != str.end(); ++it) {
-			write(*it);
-		}
-	}
-	void println(const String str = "\0") {
-		print(str);
-		write('\n');
-	}
-
-	void print(float value) {
-		String* str = NULL;
-		str = new String;
-		if(str) {
-			*str = std::to_string(value);
-			print(*str);
-			delete str;
-		}
-	}
-
-	void println(float value) {
-		String* str = NULL;
-		str = new String;
-		if(str) {
-			*str = std::to_string(value);
-			println(*str);
-			delete str;
-		}
-	}
+	void print(const String str);
+	void println(const String str = "\0");
+	void print(float value);
+	void println(float value);
 };
 
 #define MSBFIRST 1
@@ -155,5 +132,7 @@ private:
 
 void digitalWrite(uint8_t pin, bool state);
 uint8_t digitalRead(uint8_t pin);
+
+
 
 #endif  // DSD_HWG_H_

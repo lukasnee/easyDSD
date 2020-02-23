@@ -28,6 +28,53 @@ extern "C" {
 }
 #endif
 
+void* operator new(size_t size) {
+	return pvPortMalloc(size);
+}
+
+void* operator new[](size_t size) {
+	return pvPortMalloc(size);
+}
+
+void operator delete(void *ptr) {
+	vPortFree(ptr);
+}
+
+void operator delete[](void *ptr) {
+	vPortFree(ptr);
+}
+
+
+void Print::print(const String str) {
+
+	for (auto it = str.begin(); it != str.end(); ++it) {
+		write(*it);
+	}
+}
+void Print::println(const String str) {
+	print(str);
+	write('\n');
+}
+
+void Print::print(float value) {
+	String* str = NULL;
+	str = new String;
+	if(str) {
+		*str = std::to_string(value);
+		print(*str);
+		delete str;
+	}
+}
+
+void Print::println(float value) {
+	String* str = NULL;
+	str = new String;
+	if(str) {
+		*str = std::to_string(value);
+		println(*str);
+		delete str;
+	}
+}
 
 /* Glue code template for user to fill */
 
