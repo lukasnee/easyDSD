@@ -30,3 +30,33 @@ extern "C" {
 
 
 /* Glue code template for user to fill */
+
+const tft_pinout_stm32 tft_stm32_pinmap[] = {
+	{TFT_CS_GPIO_Port, TFT_CS_Pin},
+	{TFT_RESET_GPIO_Port, TFT_RESET_Pin},
+	{TFT_SDA_GPIO_Port, TFT_SDA_Pin},
+	{TFT_SCK_GPIO_Port, TFT_SCK_Pin},
+	{TFT_A0_GPIO_Port, TFT_A0_Pin}
+};
+void digitalWrite(uint8_t pin, bool state) {
+
+	HAL_GPIO_WritePin(tft_stm32_pinmap[pin].GPIOx, tft_stm32_pinmap[pin].GPIO_Pin, (GPIO_PinState)state);
+
+}
+
+inline void delay(uint32_t ms) {
+
+	HAL_Delay(ms);
+
+}
+
+void bitClear(uint8_t &byte, uint8_t bit) {
+
+	byte &= ~(1 << bit);
+
+}
+void bitSet(uint8_t &byte, uint8_t bit){
+
+	byte |= (1 << bit);
+
+}

@@ -43,7 +43,7 @@ void openDSD::th_dsd_task(void const * argument)
 
 		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
 				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(500) | dsd.btn[BTN_OK].wasPressed()));
-		HAL_GPIO_WritePin(LED_D3_GPIO_Port, LED_D3_Pin,
+		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
 				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
 
 		osDelay(10);

@@ -30,4 +30,49 @@ extern "C" {
 
 /* prototypes of API functions here */
 
+#include "main.h"
+
+#define TH_STM32
+
+#include <string>
+#include <stdio.h>
+typedef std::string String;
+typedef char* __FlashStringHelper;
+typedef bool boolean;
+#define HIGH true;
+#define LOW false;
+
+typedef struct tft_pinout_stm32_{
+
+	GPIO_TypeDef* GPIOx;
+	uint16_t GPIO_Pin;
+
+}tft_pinout_stm32;
+
+typedef enum tft_pinout_id_{
+
+	TFT_PIN_CS,
+	TFT_PIN_RESET,
+	TFT_PIN_SDA,
+	TFT_PIN_SCK,
+	TFT_PIN_A0,
+
+}tft_pinout_id;
+
+class Print {
+public:
+
+	virtual size_t write(unsigned char c) = 0;
+
+	void print(const String str);
+	void println(const String str = "\0");
+
+};
+
+#define pinMode(pin, in_or_out) __NOP()// ignore, because pin modes already set in stm32cubemx. todo: unless needed to change in runtime.
+
+void digitalWrite(uint8_t pin, bool state);
+void delay(uint32_t ms);
+void bitClear(volatile uint8_t &byte, uint8_t bit);
+void bitSet(volatile uint8_t &byte, uint8_t bit);
 #endif  // DSD_HWG_H_

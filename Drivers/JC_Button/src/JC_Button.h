@@ -7,8 +7,7 @@
 #define JC_BUTTON_H_INCLUDED
 
 // modded to work with STM32 HAL. By Therram 2020.
-#include "main.h"
-#define TH_STM32
+#include "hwg.hpp"
 
 #ifdef TH_STM32
 #define millis() HAL_GetTick()
