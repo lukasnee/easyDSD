@@ -45,6 +45,7 @@ extern SPI_HandleTypeDef hspi1;
 extern DMA_HandleTypeDef hdma_spi1_tx;
 
 #define TH_STM32
+#define WUCY_OS
 
 #include <cstdlib>
 #include <cstring>
@@ -91,13 +92,25 @@ public:
 		print(str);
 		write('\n');
 	}
+
 	void print(float value) {
-		String str = std::to_string(value);
-		print(str);
+		String* str = NULL;
+		str = new String;
+		if(str) {
+			*str = std::to_string(value);
+			print(*str);
+			delete str;
+		}
 	}
+
 	void println(float value) {
-		String str = std::to_string(value);
-		println(str);
+		String* str = NULL;
+		str = new String;
+		if(str) {
+			*str = std::to_string(value);
+			println(*str);
+			delete str;
+		}
 	}
 };
 

@@ -24,6 +24,11 @@ FATFS SDFatFS;    /* File system object for SD logical drive */
 FIL SDFile;       /* File object for SD */
 
 /* USER CODE BEGIN Variables */
+#include <string.h> //
+FRESULT res;                                          /* FatFs function common result code */
+uint32_t byteswritten, bytesread;                     /* File write/read counts */
+uint8_t wtext[] = "Hello from Lukas :)"; /* File write buffer */
+uint8_t rtext[100];                                   /* File read buffer */
 
 /* USER CODE END Variables */    
 
@@ -33,7 +38,29 @@ void MX_FATFS_Init(void)
   retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 
   /* USER CODE BEGIN Init */
-  /* additional user code for init */     
+	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) == FR_OK)
+	{
+		HAL_Delay(200);
+
+		//Open file for writing (Create)
+		if(f_open(&SDFile, "F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
+
+			//Write to the text file
+			res = f_write(&SDFile, wtext, strlen((char *)wtext), (void *)&byteswritten);
+
+			f_close(&SDFile);
+
+			//Test read file
+			f_open(&SDFile, "F7FILE5.TXT",  FA_READ);
+			memset(rtext,0,sizeof(rtext));
+			res = f_read(&SDFile, rtext, sizeof(rtext), (UINT*)&bytesread);
+
+			f_close(&SDFile);
+		}
+	}
+
+
+	f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
   /* USER CODE END Init */
 }
 
