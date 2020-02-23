@@ -9,10 +9,6 @@
 // modded to work with STM32 HAL. By Therram 2020.
 #include "hwg.hpp"
 
-#ifdef TH_STM32
-#define millis() HAL_GetTick()
-#endif
-
 class Button
 {
     public:

@@ -32,15 +32,32 @@ extern "C" {
 
 #include "main.h"
 
+extern I2S_HandleTypeDef hi2s2;
+extern I2S_HandleTypeDef hi2s3;
+extern DMA_HandleTypeDef hdma_spi2_tx;
+extern DMA_HandleTypeDef hdma_spi3_tx;
+
+extern RTC_HandleTypeDef hrtc;
+
+extern SD_HandleTypeDef hsd;
+
+extern SPI_HandleTypeDef hspi1;
+extern DMA_HandleTypeDef hdma_spi1_tx;
+
 #define TH_STM32
 
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <stdio.h>
 typedef std::string String;
 typedef char* __FlashStringHelper;
+
 typedef bool boolean;
-#define HIGH true;
-#define LOW false;
+#define HIGH true
+#define LOW false
+
+
 
 typedef struct tft_pinout_stm32_{
 
@@ -64,15 +81,66 @@ public:
 
 	virtual size_t write(unsigned char c) = 0;
 
-	void print(const String str);
-	void println(const String str = "\0");
+	void print(const String str) {
+
+		for (auto it = str.begin(); it != str.end(); ++it) {
+			write(*it);
+		}
+	}
+	void println(const String str = "\0") {
+		print(str);
+		write('\n');
+	}
+	void print(float value) {
+		String str = std::to_string(value);
+		print(str);
+	}
+	void println(float value) {
+		String str = std::to_string(value);
+		println(str);
+	}
+};
+
+#define MSBFIRST 1
+#define SPI_MODE0 1
+
+class SPI {
+
+public:
+
+	SPI(){
+
+		hspi = &hspi1;
+
+	}
+	~SPI(){}
+
+	void begin() {};
+
+	void transfer(uint8_t byte) {
+
+		const uint16_t Size = 1;
+		const uint32_t Timeout = 100;
+		HAL_SPI_Transmit(hspi, &byte, Size, Timeout);
+
+	}
+	void setClockDivider(uint8_t divider_dummy) { /* done by stm32cubemx */ };
+	void setBitOrder(uint8_t order_dummy) { /* done by stm32cubemx */ };
+	void setDataMode(uint8_t spiMode_dummy) { /* done by stm32cubemx */ };
+
+private:
+
+	SPI_HandleTypeDef* hspi;
 
 };
+#define millis() HAL_GetTick()
+#define bitClear(byte, bit) byte &= ~(1 << bit)
+#define bitSet(byte, bit) byte |= (1 << bit)
+#define delay(ms) HAL_Delay(ms)
 
 #define pinMode(pin, in_or_out) __NOP()// ignore, because pin modes already set in stm32cubemx. todo: unless needed to change in runtime.
 
 void digitalWrite(uint8_t pin, bool state);
-void delay(uint32_t ms);
-void bitClear(volatile uint8_t &byte, uint8_t bit);
-void bitSet(volatile uint8_t &byte, uint8_t bit);
+uint8_t digitalRead(uint8_t pin);
+
 #endif  // DSD_HWG_H_

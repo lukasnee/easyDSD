@@ -7,7 +7,8 @@
 #include "wiring_private.h"
 #include <SPI.h>
 #else
-
+#include "hwg.hpp"
+SPI SPI;
 #endif
 
 

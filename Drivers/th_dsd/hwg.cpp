@@ -44,19 +44,10 @@ void digitalWrite(uint8_t pin, bool state) {
 
 }
 
-inline void delay(uint32_t ms) {
+uint8_t digitalRead(uint8_t pin) {
 
-	HAL_Delay(ms);
-
-}
-
-void bitClear(uint8_t &byte, uint8_t bit) {
-
-	byte &= ~(1 << bit);
+	return HAL_GPIO_ReadPin(tft_stm32_pinmap[pin].GPIOx, tft_stm32_pinmap[pin].GPIO_Pin);
 
 }
-void bitSet(uint8_t &byte, uint8_t bit){
 
-	byte |= (1 << bit);
 
-}
