@@ -1051,7 +1051,7 @@ void Adafruit_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t bg, 
 /**************************************************************************/
 void Adafruit_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t bg, uint8_t size_x, uint8_t size_y) {
 
-	uint16_t drawcolor_tmp = drawcolor;
+	//uint16_t drawcolor_tmp = drawcolor;
 
 	 if(gfxFont) {
 
@@ -1378,12 +1378,12 @@ if(maxx >= minx) {
     @param    h      The boundary height, set by function
 */
 /**************************************************************************/
-void Adafruit_GFX::getTextBounds(const std::string &str, int16_t x, int16_t y,
-        int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h) {
-    if (str.length() != 0) {
-        getTextBounds(const_cast<char*>(str.c_str()), x, y, x1, y1, w, h);
-    }
-}
+//void Adafruit_GFX::getTextBounds(const std::string &str, int16_t x, int16_t y,
+//        int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h) {
+//    if (str.length() != 0) {
+//        getTextBounds(const_cast<char*>(str.c_str()), x, y, x1, y1, w, h);
+//    }
+//}
 /**************************************************************************/
 /*!
     @brief      Invert the display (ideally using built-in hardware command)

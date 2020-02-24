@@ -26,9 +26,9 @@
 									(((((color & 0x00FF0000) >> 16) * DISP_R_MAX) / 0xFF) << 3 ) | \
 									(((((color & 0x0000FF00) >> 8 ) * DISP_G_MAX) / 0xFF) >> 3 )
 #elif defined(COLOR_DATA_R3B5R5G3)
-#define COLOR_DATA_FORMAT(color) 	(((((color & 0x00FF0000) >> 8 ) * DISP_R_MAX) / 0xFF) << 11) | \
-									(((((color & 0x0000FF00) >> 0 ) * DISP_G_MAX) / 0xFF) << 5 ) | \
-									(((((color & 0x000000FF) >> 16) * DISP_B_MAX) / 0xFF) << 0 )
+#define COLOR_DATA_FORMAT(color) 	(((((color & 0x00FF0000) >> 16 ) * DISP_R_MAX) / 0xFF) << 11) | \
+									(((((color & 0x0000FF00) >> 8 ) * DISP_G_MAX) / 0xFF) << 5 ) | \
+									(((((color & 0x000000FF) >> 0) * DISP_B_MAX) / 0xFF) << 0 )
 #endif
 
 /* 16 bit hex RGB color: - 5 bits red (MSBs), 6 bits green, 5 bits blue  (LSBs) */
@@ -159,8 +159,8 @@ class Adafruit_GFX : public Print {
 	      uint16_t bg, uint8_t size_x, uint8_t size_y),
     getTextBounds(const char *string, int16_t x, int16_t y,
       int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h),
-	getTextBounds(const std::string &str, int16_t x, int16_t y,
-	          int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h),
+//	getTextBounds(const std::string &str, int16_t x, int16_t y,
+//	          int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h),
     setTextSize(uint8_t s),
     setTextSize(uint8_t sx, uint8_t sy),
     setFont(const GFXfont *f = NULL);

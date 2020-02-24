@@ -27,7 +27,7 @@ FIL SDFile;       /* File object for SD */
 #include <string.h> //
 FRESULT res;                                          /* FatFs function common result code */
 uint32_t byteswritten, bytesread;                     /* File write/read counts */
-uint8_t wtext[] = "Hello from Lukas :)"; /* File write buffer */
+uint8_t wtext[] = "Hello from bambukas :)"; /* File write buffer */
 uint8_t rtext[100];                                   /* File read buffer */
 
 /* USER CODE END Variables */    

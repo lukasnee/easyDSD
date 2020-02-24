@@ -17,6 +17,24 @@
 
 #include <dsd.hpp>
 
+#include "wucyFont8pt7b.h"
+
+/*void* operator new(size_t size) {
+	return pvPortMalloc(size);
+}
+
+void* operator new[](size_t size) {
+	return pvPortMalloc(size);
+}
+
+void operator delete(void *ptr) {
+	vPortFree(ptr);
+}
+
+void operator delete[](void *ptr) {
+	vPortFree(ptr);
+}*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,7 +45,7 @@ extern "C" {
 }
 #endif
 
-osThreadId defaultTaskHandle;
+//osThreadId defaultTaskHandle;
 
 #include <Adafruit_GFX.h>
 #include <TFT_ILI9163C.h>
@@ -35,78 +53,31 @@ osThreadId defaultTaskHandle;
 TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
 
 unsigned long testText() {
-  tft.fillScreen();
-  unsigned long start = millis();
-  tft.setCursor(0, 0);
-  tft.setTextColor(COLOR_LIME);
-  tft.setTextSize(1);
-  tft.println("Hello World!");
-  tft.setTextColor(COLOR_YELLOW);
-  tft.setTextSize(2);
-  tft.println(1234.56);
-  tft.setTextColor(COLOR_RED);
-  tft.setTextSize(3);
-  tft.println("MAZAFAKA");
-  tft.println();
-  tft.setTextColor(COLOR_GREEN);
-  tft.setTextSize(4);
-  tft.println("Hello");
-  return millis() - start;
-}
 
-unsigned long testLines(color_rgb16_t color) {
+	static char c = 0;
 
-	tft.setDrawColor(color);
-  tft.fillScreen();
-  unsigned long start, t;
-  int           x1, y1, x2, y2,
-  w = tft.width(),
-  h = tft.height();
-  tft.fillScreen();
-  x1 = y1 = 0;
-  y2    = h - 1;
-  start = millis();
-  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2);
-  x2    = w - 1;
-  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2);
-  t     = millis() - start; // fillScreen doesn't count against timing
-  tft.fillScreen();
-  x1    = w - 1;
-  y1    = 0;
-  y2    = h - 1;
-  start = millis();
-  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2);
-  x2    = 0;
-  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2);
-  t    += millis() - start;
-  tft.fillScreen();
-  x1    = 0;
-  y1    = h - 1;
-  y2    = 0;
-  start = millis();
-  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2);
-  x2    = w - 1;
-  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2);
-  t    += millis() - start;
-  tft.fillScreen();
-  x1    = w - 1;
-  y1    = h - 1;
-  y2    = 0;
-  start = millis();
-  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2);
-  x2    = 0;
-  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2);
-  return millis() - start;
+	tft.setFont(&wucyFont8pt7b);
+
+	tft.setTextWrap(true);
+	tft.setBounds(tft.width(), tft.height());
+
+	//tft.fillScreen();
+
+	tft.setTextColor(COLOR_YELLOW);
+	tft.setTextSize(2);
+	tft.setCursor(0, tft.getCharMaxHeight());
+	tft.println("openDSD\n");
+	tft.setCursor(0, tft.getCharMaxHeight()*3);
+	tft.setTextColor(COLOR_LIME);
+	tft.setTextSize(1);
+	for(unsigned int i = c; i <= 4*0xFF; i++)
+		tft.write((char)i);
+	c++;
 }
 
 void openDSD::th_dsd_task(void const * argument)
 {
 
-	int * foo = NULL;
-	foo = new int;
-	*foo= 8;
-	*foo= -98;
-	delete foo;
 
 	static openDSD dsd;
 
@@ -122,17 +93,17 @@ void openDSD::th_dsd_task(void const * argument)
 		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
 				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
 
-	  testLines((color_rgb16_t)(std::rand() % 0xffff));
-	  osDelay(100);
 	  testText();
-	  osDelay(500);
+	  HAL_Delay(1);
 	}
 }
 
 void th_dsd_start(void) {
 
-	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 256);
-	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
+//	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
+//	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
+
+	openDSD::th_dsd_task(NULL);
 
 }
 

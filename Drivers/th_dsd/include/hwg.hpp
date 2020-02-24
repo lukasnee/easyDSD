@@ -20,9 +20,9 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <string>
+//#include <string>
 #include <stdio.h>
-#include <cmsis_os.h>
+//#include <cmsis_os.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,8 +57,9 @@ extern DMA_HandleTypeDef hdma_spi1_tx;
 #define WUCY_OS
 
 
-typedef std::string String;
-typedef char* __FlashStringHelper;
+//typedef std::string String;
+typedef char const * String;
+typedef char const * __FlashStringHelper;
 
 typedef bool boolean;
 #define HIGH true
@@ -85,10 +86,10 @@ class Print {
 public:
 
 	virtual size_t write(unsigned char c) = 0;
-	void print(const String str);
-	void println(const String str = "\0");
-	void print(float value);
-	void println(float value);
+	void print(String str);
+	void println(String str = "\0");
+	void print(const float value);
+	void println(const float value);
 };
 
 #define MSBFIRST 1
@@ -133,6 +134,23 @@ private:
 void digitalWrite(uint8_t pin, bool state);
 uint8_t digitalRead(uint8_t pin);
 
+/* new delete operator overloading for working with FreeRTOS. Did not work... todo */
+/*
+void* operator new(size_t size) {
+	return pvPortMalloc(size);
+}
 
+void* operator new[](size_t size) {
+	return pvPortMalloc(size);
+}
+
+void operator delete(void *ptr) {
+	vPortFree(ptr);
+}
+
+void operator delete[](void *ptr) {
+	vPortFree(ptr);
+}
+*/
 
 #endif  // DSD_HWG_H_

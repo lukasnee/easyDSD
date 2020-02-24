@@ -28,52 +28,29 @@ extern "C" {
 }
 #endif
 
-void* operator new(size_t size) {
-	return pvPortMalloc(size);
-}
-
-void* operator new[](size_t size) {
-	return pvPortMalloc(size);
-}
-
-void operator delete(void *ptr) {
-	vPortFree(ptr);
-}
-
-void operator delete[](void *ptr) {
-	vPortFree(ptr);
-}
-
-
-void Print::print(const String str) {
-
-	for (auto it = str.begin(); it != str.end(); ++it) {
+void Print::print(String str) {
+/* deprecated - for <string> todo */
+//	for (auto it = str.begin(); it != str.end(); ++it) {
+//		write(*it);
+//	}
+	for (char const * it = str; *it != '\0'; it++)
 		write(*it);
-	}
+
 }
-void Print::println(const String str) {
+void Print::println(String str) {
 	print(str);
 	write('\n');
 }
 
-void Print::print(float value) {
-	String* str = NULL;
-	str = new String;
-	if(str) {
-		*str = std::to_string(value);
-		print(*str);
-		delete str;
-	}
+void Print::print(const float value) {
+	char str[30] = { 0 };
+	sprintf(str, "%.2f", value);
+	print(str);
 }
 
-void Print::println(float value) {
-	String* str = NULL;
-	str = new String;
-	if(str) {
-		*str = std::to_string(value);
-		println(*str);
-		delete str;
-	}
+void Print::println(const float value) {
+	print(value);
+	write('\n');
 }
 
 /* Glue code template for user to fill */
