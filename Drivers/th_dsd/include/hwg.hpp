@@ -18,11 +18,8 @@
 #ifndef DSD_HWG_H_
 #define DSD_HWG_H_
 
-#include <cstdlib>
-#include <cstring>
-//#include <string>
-#include <stdio.h>
-//#include <cmsis_os.h>
+
+#include "dsd.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,10 +49,6 @@ extern SD_HandleTypeDef hsd;
 
 extern SPI_HandleTypeDef hspi1;
 extern DMA_HandleTypeDef hdma_spi1_tx;
-
-#define TH_STM32
-#define WUCY_OS
-
 
 //typedef std::string String;
 typedef char const * String;
@@ -115,9 +108,6 @@ public:
 		HAL_SPI_Transmit(hspi, &byte, Size, Timeout);
 
 	}
-	void setClockDivider(uint8_t divider_dummy) { /* done by stm32cubemx */ };
-	void setBitOrder(uint8_t order_dummy) { /* done by stm32cubemx */ };
-	void setDataMode(uint8_t spiMode_dummy) { /* done by stm32cubemx */ };
 
 private:
 
@@ -129,28 +119,8 @@ private:
 #define bitSet(byte, bit) byte |= (1 << bit)
 #define delay(ms) HAL_Delay(ms)
 
-#define pinMode(pin, in_or_out) __NOP()// ignore, because pin modes already set in stm32cubemx. todo: unless needed to change in runtime.
-
 void digitalWrite(uint8_t pin, bool state);
 uint8_t digitalRead(uint8_t pin);
 
-/* new delete operator overloading for working with FreeRTOS. Did not work... todo */
-/*
-void* operator new(size_t size) {
-	return pvPortMalloc(size);
-}
-
-void* operator new[](size_t size) {
-	return pvPortMalloc(size);
-}
-
-void operator delete(void *ptr) {
-	vPortFree(ptr);
-}
-
-void operator delete[](void *ptr) {
-	vPortFree(ptr);
-}
-*/
 
 #endif  // DSD_HWG_H_

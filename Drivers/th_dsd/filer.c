@@ -2,13 +2,39 @@
 /* Text Filer                                          (C)ChaN, 2013    */
 /*----------------------------------------------------------------------*/
 
+
+/*openDSD wrapper START */
+
+#include "hwg.hpp"
+
+
+/* Text screen size */
+#define TS_WIDTH	26
+#define TS_HEIGHT	13
+
+extern TFT_ILI9163C tft;
+
+void disp_font_face (const uint8_t *font) {
+
+
+}
+void disp_font_color (uint32_t color) {
+
+}
+void disp_locate (int col, int row) {
+
+}
+void disp_putc (uint8_t chr) {
+
+}
+
+/*openDSD wrapper END */
+
 #include <stdarg.h>
 #include <string.h>
 #include "filer.h"
-#include "disp.h"
 #include "sound.h"
 #include "xprintf.h"
-#include "uart23xx.h"
 
 
 #define N_MAXDIR	200
@@ -16,14 +42,13 @@
 
 #define C_NORMAL	C_WHITE
 #define C_HIDDEN	C_BLUE
-#define C_DIRECTORY	C_CYAN
+#define C_DIRECTORY	C_TEAL
 #define C_READONLY	C_GREEN
 #define C_TITLE		((C_BLUE << 16) | C_WHITE)
 #define C_STAT		((C_BLUE << 16) | C_WHITE)
 #define C_WBASE		C_WHITE
-#define C_WTITLE	((C_CYAN << 16) | C_BLACK)
+#define C_WTITLE	((C_TEAL << 16) | C_BLACK)
 #define C_WINPUT	((C_GRAY << 16) | C_WHITE)
-
 
 
 typedef struct {

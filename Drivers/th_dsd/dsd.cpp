@@ -17,8 +17,6 @@
 
 #include <dsd.hpp>
 
-#include "wucyFont8pt7b.h"
-
 /*void* operator new(size_t size) {
 	return pvPortMalloc(size);
 }
@@ -47,8 +45,6 @@ extern "C" {
 
 //osThreadId defaultTaskHandle;
 
-#include <Adafruit_GFX.h>
-#include <TFT_ILI9163C.h>
 
 TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
 
@@ -63,12 +59,12 @@ unsigned long testText() {
 
 	//tft.fillScreen();
 
-	tft.setTextColor(COLOR_YELLOW);
+	tft.setTextColor(C_YELLOW);
 	tft.setTextSize(2);
 	tft.setCursor(0, tft.getCharMaxHeight());
 	tft.println("openDSD\n");
 	tft.setCursor(0, tft.getCharMaxHeight()*3);
-	tft.setTextColor(COLOR_LIME);
+	tft.setTextColor(C_LIME);
 	tft.setTextSize(1);
 	for(unsigned int i = c; i <= 4*0xFF; i++)
 		tft.write((char)i);

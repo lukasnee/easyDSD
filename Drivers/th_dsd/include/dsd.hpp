@@ -18,9 +18,49 @@
 #ifndef DSD_HPP_
 #define DSD_HPP_
 
+/* todo: this is new/delete operators overloading for working with FreeRTOS.
+ * Couldn't get it work, deprecated idea... */
+
+/*
+void* operator new(size_t size) {
+	return pvPortMalloc(size);
+}
+
+void* operator new[](size_t size) {
+	return pvPortMalloc(size);
+}
+
+void operator delete(void *ptr) {
+	vPortFree(ptr);
+}
+
+void operator delete[](void *ptr) {
+	vPortFree(ptr);
+}
+*/
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <hwg.hpp>			/* hardware glue code for user to fill */
+
+#include <stdlib.h>
+#include <string.h>
+//#include <string>
+#include <stdio.h>
+
+#include <Adafruit_GFX.h>
+#include <TFT_ILI9163C.h> 	/* display driver */
+#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
+#include "fatfs.h"			/* FAT32 file system */
+//#include <tag.h>			/* library for ID3v2 decoding from .dsf file */
+
+#include "wucyFont8pt7b.h"
+
+#define TH_STM32
+#define WUCY_OS
 
 void th_dsd_start(void); /* start task externally from c source */
 
@@ -29,14 +69,6 @@ void th_dsd_start(void); /* start task externally from c source */
 #endif
 
 #ifdef __cplusplus
-
-#include <hwg.hpp>			/* hardware glue code for user to fill */
-
-#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
-#include "fatfs.h"			/* FAT32 file system */
-#include "TFT_ILI9163C.h" 	/* display driver */
-
-//#include <tag.h>			/* library for ID3v2 decoding from .dsf file */
 
 typedef enum button_map_{
 
