@@ -5,8 +5,7 @@
 
 /*openDSD wrapper START */
 
-#include "hwg.hpp"
-
+#include "dsd.hpp"
 
 /* Text screen size */
 #define TS_WIDTH	26
@@ -15,7 +14,6 @@
 extern TFT_ILI9163C tft;
 
 void disp_font_face (const uint8_t *font) {
-
 
 }
 void disp_font_color (uint32_t color) {
@@ -32,10 +30,7 @@ void disp_putc (uint8_t chr) {
 
 #include <stdarg.h>
 #include <string.h>
-#include "filer.h"
-#include "sound.h"
 #include "xprintf.h"
-
 
 #define N_MAXDIR	200
 #define	SZ_PATH		80

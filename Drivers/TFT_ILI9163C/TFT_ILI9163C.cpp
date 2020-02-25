@@ -2,9 +2,6 @@
 
 #include <limits.h>
 
-#include "hwg.hpp"
-SPI SPI;
-
 TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : Adafruit_GFX(_TFTWIDTH,_TFTHEIGHT)
 {
 	_cs   = cspin;
@@ -16,7 +13,7 @@ TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : Adafrui
 	{
 		digitalWrite(_rs,LOW);
 		digitalWrite(_cs,LOW);
-		SPI.transfer(c);
+		spi.transfer(c);
 		digitalWrite(_cs,HIGH);
 	}
 
@@ -24,7 +21,7 @@ TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : Adafrui
 	{
 		digitalWrite(_rs,HIGH);
 		digitalWrite(_cs,LOW);
-		SPI.transfer(c);
+		spi.transfer(c);
 		digitalWrite(_cs,HIGH);
 	} 
 
@@ -32,8 +29,8 @@ TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : Adafrui
 	{
 		digitalWrite(_rs,HIGH);
 		digitalWrite(_cs,LOW);
-		SPI.transfer(d >> 8);
-		SPI.transfer(d);
+		spi.transfer(d >> 8);
+		spi.transfer(d);
 		digitalWrite(_cs,HIGH);
 	} 
 
@@ -43,11 +40,7 @@ void TFT_ILI9163C::begin(void)
 	_initError = 0b00000000;
 	pinMode(_rs, OUTPUT);
 	pinMode(_cs, OUTPUT);
-	SPI.begin();
-	#if !defined(SPI_HAS_TRANSACTION)
-	SPI.setClockDivider(4);
-	SPI.setBitOrder(MSBFIRST);
-	SPI.setDataMode(SPI_MODE0);
+	spi.begin();
 	digitalWrite(_cs, LOW);
 
 	if (_rst != 255) {

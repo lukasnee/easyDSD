@@ -1,7 +1,7 @@
 #ifndef SOUND_DEFINED
 #define SOUND_DEFINED
 
-#include "hwg.hpp"
+#include "stdio.h"
 
 #define USE_WAVPLAYER	1	/* Enable RIFF-WAV file player */
 

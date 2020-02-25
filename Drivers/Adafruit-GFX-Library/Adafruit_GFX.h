@@ -1,8 +1,10 @@
 #ifndef _ADAFRUIT_GFX_H
 #define _ADAFRUIT_GFX_H
 
-//#include <cstdlib>
 #include "hwg.hpp"
+
+#include <stdlib.h>
+#include <stdio.h>
 #include "gfxfont.h"
 
 //=========SETTINGS============
@@ -65,17 +67,10 @@ typedef enum color_hex32_t_{
 
 /// A generic graphics superclass that can handle all sorts of drawing. At a minimum you can subclass and provide drawPixel(). At a maximum you can do a ton of overriding to optimize. Used for any/all Adafruit displays!
 class Adafruit_GFX : public Print {
-
  public:
-
-  Adafruit_GFX(int16_t w, int16_t h); // Constructor
-
-#ifdef WUCY_OS
-
-  uint8_t getCharMaxHeight() { return gfxFont->yAdvance; };
+  Adafruit_GFX(int16_t w, int16_t h); // Constructo
 
   virtual ~Adafruit_GFX() {}; // Deconstructor
-#endif/* WUCY_OS */
 
   // This MUST be defined by the subclass:
   virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;    ///< Virtual drawPixel() function to draw to the screen/framebuffer/etc, must be overridden in subclass. @param x X coordinate.  @param y Y coordinate. @param color 16-bit pixel color.
@@ -164,6 +159,8 @@ class Adafruit_GFX : public Print {
     setTextSize(uint8_t s),
     setTextSize(uint8_t sx, uint8_t sy),
     setFont(const GFXfont *f = NULL);
+
+  uint8_t getCharMaxHeight() { return gfxFont->yAdvance; };
 
   /**********************************************************************/
   /*!

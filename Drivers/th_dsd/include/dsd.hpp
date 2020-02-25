@@ -18,57 +18,35 @@
 #ifndef DSD_HPP_
 #define DSD_HPP_
 
-/* todo: this is new/delete operators overloading for working with FreeRTOS.
- * Couldn't get it work, deprecated idea... */
-
-/*
-void* operator new(size_t size) {
-	return pvPortMalloc(size);
-}
-
-void* operator new[](size_t size) {
-	return pvPortMalloc(size);
-}
-
-void operator delete(void *ptr) {
-	vPortFree(ptr);
-}
-
-void operator delete[](void *ptr) {
-	vPortFree(ptr);
-}
-*/
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <hwg.hpp>			/* hardware glue code for user to fill */
 
 #include <stdlib.h>
 #include <string.h>
 //#include <string>
 #include <stdio.h>
 
-#include <Adafruit_GFX.h>
-#include <TFT_ILI9163C.h> 	/* display driver */
-#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
 #include "fatfs.h"			/* FAT32 file system */
 //#include <tag.h>			/* library for ID3v2 decoding from .dsf file */
 
-#include "wucyFont8pt7b.h"
-
-#define TH_STM32
-#define WUCY_OS
-
-void th_dsd_start(void); /* start task externally from c source */
+#include "filer.h"
+#include "sound.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#ifdef __cplusplus
+
+
+#define WUCY_OS
+
+#include "openDSD.h"
+#include <hwg.hpp>			/* hardware glue code for user to fill */
+#include <Adafruit_GFX.h>
+#include <TFT_ILI9163C.h> 	/* display driver */
+#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
+#include "wucyFont8pt7b.h"
 
 typedef enum button_map_{
 
@@ -84,31 +62,27 @@ class openDSD
 	friend void th_dsd_start(void);
 
     private:
-        openDSD() {}
+	openDSD() {}
 
-        static void th_dsd_task(void const * argument);
+	static void th_dsd_task(void const * argument);
 
-        void buttonsUpdate(void)
-        {
-        	for(uint8_t i = 0; i < BTN_COUNT; i++)
-        		btn[i].read();
-        }
+	void buttonsUpdate(void)
+	{
+		for(uint8_t i = 0; i < BTN_COUNT; i++)
+			btn[i].read();
+	}
 
-        void buttonsBegin(void)
-        {
-        	for(uint8_t i = 0; i < BTN_COUNT; i++)
-        		btn[i].begin();
-        }
+	void buttonsBegin(void)
+	{
+		for(uint8_t i = 0; i < BTN_COUNT; i++)
+			btn[i].begin();
+	}
 
-        Button btn[BTN_COUNT] = {
-        		{BTN_UP_GPIO_Port, BTN_UP_Pin},
-				{BTN_OK_GPIO_Port, BTN_OK_Pin},
-				{BTN_DOWN_GPIO_Port, BTN_DOWN_Pin}
-        };
-
+	Button btn[BTN_COUNT] = {
+			{BTN_UP_GPIO_Port, BTN_UP_Pin},
+			{BTN_OK_GPIO_Port, BTN_OK_Pin},
+			{BTN_DOWN_GPIO_Port, BTN_DOWN_Pin}
+	};
 };
 
-
-
-#endif
 #endif  // DSD_HPP_

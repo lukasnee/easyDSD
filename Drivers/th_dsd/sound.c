@@ -13,7 +13,6 @@
 
 #include <string.h>
 #include "sound.h"
-#include "interrupt.h"
 #include "xprintf.h"
 #include "disp.h"
 #include "uart23xx.h"

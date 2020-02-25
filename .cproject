@@ -119,7 +119,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|Adafruit-GFX-Library/fontconvert|id3lib-3.8.3|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry excluding="th_dsd/xprintf.c|th_dsd/tjpgd.c|th_dsd/sound.c|th_dsd/filexp.cpp|th_dsd/filer.c|Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|Adafruit-GFX-Library/fontconvert|id3lib-3.8.3|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
@@ -233,7 +233,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|Adafruit-GFX-Library/fontconvert|id3lib-3.8.3|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry excluding="th_dsd/xprintf.c|th_dsd/tjpgd.c|th_dsd/sound.c|th_dsd/filexp.cpp|th_dsd/filer.c|Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|Adafruit-GFX-Library/fontconvert|id3lib-3.8.3|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>

@@ -28,6 +28,8 @@ extern "C" {
 }
 #endif
 
+SPI spi;
+
 void Print::print(String str) {
 /* deprecated - for <string> todo */
 //	for (auto it = str.begin(); it != str.end(); ++it) {
@@ -53,7 +55,7 @@ void Print::println(const float value) {
 	write('\n');
 }
 
-/* Glue code template for user to fill */
+//todo: not the fastest way of digital write/read. Needs to fetch from array...
 
 const tft_pinout_stm32 tft_stm32_pinmap[] = {
 	{TFT_CS_GPIO_Port, TFT_CS_Pin},
@@ -62,13 +64,16 @@ const tft_pinout_stm32 tft_stm32_pinmap[] = {
 	{TFT_SCK_GPIO_Port, TFT_SCK_Pin},
 	{TFT_A0_GPIO_Port, TFT_A0_Pin}
 };
-void digitalWrite(uint8_t pin, bool state) {
+
+/* Glue code template for user to fill */
+
+void digitalWrite(uint8_t pin, boolean state) {
 
 	HAL_GPIO_WritePin(tft_stm32_pinmap[pin].GPIOx, tft_stm32_pinmap[pin].GPIO_Pin, (GPIO_PinState)state);
 
 }
 
-uint8_t digitalRead(uint8_t pin) {
+boolean digitalRead(uint8_t pin) {
 
 	return HAL_GPIO_ReadPin(tft_stm32_pinmap[pin].GPIOx, tft_stm32_pinmap[pin].GPIO_Pin);
 

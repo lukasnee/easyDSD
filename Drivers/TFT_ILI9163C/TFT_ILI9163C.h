@@ -1,7 +1,5 @@
 /*
-	ILI9163C - A fast SPI driver for TFT that use Ilitek ILI9163C.
-	
-	Modified by Therram for project openDSD.
+	Driver for ILI9163C displays. Modified by Therram for project openDSD.
 	
 	-------------------------------------------------------------------------------
     Copyright (c) 2014, .S.U.M.O.T.O.Y., coded by Max MC Costa.    
@@ -25,10 +23,7 @@
 #ifndef _TFT_ILI9163CLIB_H_
 #define _TFT_ILI9163CLIB_H_
 
-#include "dsd.hpp"
-
 #include <Adafruit_GFX.h>
-
 #include "../TFT_ILI9163C/_settings/TFT_ILI9163C_settings.h"
 #include "../TFT_ILI9163C/_settings/TFT_ILI9163C_registers.h"
 

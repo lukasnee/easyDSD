@@ -88,7 +88,7 @@ class Button
 class ToggleButton : public Button
 {
     public:
-    
+
 
 #ifndef TH_STM32
   // constructor is similar to Button, but includes the initial state for the toggle.

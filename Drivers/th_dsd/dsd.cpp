@@ -16,6 +16,7 @@
 */
 
 #include <dsd.hpp>
+#include <log.hpp>
 
 /*void* operator new(size_t size) {
 	return pvPortMalloc(size);
@@ -48,6 +49,10 @@ extern "C" {
 
 TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
 
+
+
+
+
 unsigned long testText() {
 
 	static char c = 0;
@@ -76,9 +81,22 @@ void openDSD::th_dsd_task(void const * argument)
 
 
 	static openDSD dsd;
+	static Logger logger(&tft, 0, 0, 128, 128);
 
-	  tft.begin();
+	tft.begin();
 	dsd.buttonsBegin();
+
+	char txt[100] = {0};
+
+	uint16_t i = 0;
+	do{
+		sprintf(txt, "This is line %d.\n", i);
+		logger.log(txt);
+		logger.draw();
+		delay(500);
+		i++;
+	}while(i != 0);
+
 
 	while (true) {
 
@@ -89,8 +107,6 @@ void openDSD::th_dsd_task(void const * argument)
 		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
 				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
 
-	  testText();
-	  HAL_Delay(1);
 	}
 }
 
