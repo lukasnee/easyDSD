@@ -11,27 +11,20 @@ TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : Adafrui
 
 	void TFT_ILI9163C::writecommand(uint8_t c)
 	{
-		digitalWrite(_rs,LOW);
-		digitalWrite(_cs,LOW);
-		spi.transfer(c);
-		digitalWrite(_cs,HIGH);
+		spi.transfer(&c, DC_COMMAND);
 	}
 
 	void TFT_ILI9163C::writedata(uint8_t c)
 	{
-		digitalWrite(_rs,HIGH);
-		digitalWrite(_cs,LOW);
-		spi.transfer(c);
-		digitalWrite(_cs,HIGH);
+		spi.transfer(&c, DC_DATA);
 	} 
 
 	void TFT_ILI9163C::writedata16(uint16_t d)
 	{
-		digitalWrite(_rs,HIGH);
-		digitalWrite(_cs,LOW);
-		spi.transfer(d >> 8);
-		spi.transfer(d);
-		digitalWrite(_cs,HIGH);
+		uint8_t a[2];
+		a[0] = d >> 8;
+		a[1] = d;
+		spi.transfer(a, DC_DATA, 2);
 	} 
 
 void TFT_ILI9163C::begin(void) 
