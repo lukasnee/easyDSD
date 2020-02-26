@@ -85,10 +85,10 @@ public:
 
 /* SPI workaround */
 
-typedef enum dc_mode_t_{
-	DC_DATA,
-	DC_COMMAND
-}dc_mode_t;
+
+typedef enum dc_mode_{
+	DC_DATA, DC_COMMAND
+}dc_mode_e;
 
 class SPI {
 
@@ -98,12 +98,12 @@ public:
 		_hspi = &hspi1;
 	}
 	void begin() {};
-	void transfer(uint8_t* data, dc_mode_t dc, uint8_t size = 1);
+	void transfer(uint8_t* data, dc_mode_e dc, uint32_t size = 1);
+
 	/* dummy code. todo: add functionality to it if ever needed... */
 
 private:
 	SPI_HandleTypeDef* _hspi;
-
 };
 
 extern SPI spi;
