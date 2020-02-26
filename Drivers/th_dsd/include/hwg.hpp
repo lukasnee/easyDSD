@@ -85,6 +85,11 @@ public:
 
 /* SPI workaround */
 
+typedef enum dc_mode_t_{
+	DC_DATA,
+	DC_COMMAND
+}dc_mode_t;
+
 class SPI {
 
 public:
@@ -93,13 +98,7 @@ public:
 		_hspi = &hspi1;
 	}
 	void begin() {};
-	void transfer(uint8_t byte) {
-
-		const uint16_t Size = 1;
-		const uint32_t Timeout = 100;
-		HAL_SPI_Transmit(_hspi, &byte, Size, Timeout);
-	}
-
+	void transfer(uint8_t* data, dc_mode_t dc, uint8_t size = 1);
 	/* dummy code. todo: add functionality to it if ever needed... */
 
 private:

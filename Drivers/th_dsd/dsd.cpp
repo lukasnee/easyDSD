@@ -49,10 +49,6 @@ extern "C" {
 
 TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
 
-
-
-
-
 unsigned long testText() {
 
 	static char c = 0;
@@ -100,12 +96,12 @@ void openDSD::th_dsd_task(void const * argument)
 
 	while (true) {
 
-		dsd.buttonsUpdate();
-
-		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
-				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(500) | dsd.btn[BTN_OK].wasPressed()));
-		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
-				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
+//		dsd.buttonsUpdate();
+//
+//		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
+//				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(500) | dsd.btn[BTN_OK].wasPressed()));
+//		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
+//				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
 
 	}
 }

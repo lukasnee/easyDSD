@@ -65,6 +65,17 @@ const tft_pinout_stm32 tft_stm32_pinmap[] = {
 	{TFT_A0_GPIO_Port, TFT_A0_Pin}
 };
 
+void SPI::transfer(uint8_t* data, dc_mode_t dc, uint8_t size) {
+
+	const uint32_t Timeout = 100;
+
+	HAL_GPIO_WritePin(TFT_RESET_GPIO_Port, TFT_RESET_Pin, (dc?GPIO_PIN_SET:GPIO_PIN_RESET));
+	HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin,GPIO_PIN_RESET);
+	HAL_SPI_Transmit(_hspi, data, size, Timeout);
+	HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_SET);
+}
+
+
 /* Glue code template for user to fill */
 
 void digitalWrite(uint8_t pin, boolean state) {
