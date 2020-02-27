@@ -97,6 +97,7 @@ void openDSD::th_dsd_task(void const * argument)
 
 	while (true) {
 
+
 //		dsd.buttonsUpdate();
 //
 //		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
