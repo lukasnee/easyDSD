@@ -22,8 +22,6 @@
 extern "C" {
 #endif
 
-// all of your legacy C code here
-
 #ifdef __cplusplus
 }
 #endif
@@ -65,15 +63,30 @@ const tft_pinout_stm32 tft_stm32_pinmap[] = {
 	{TFT_A0_GPIO_Port, TFT_A0_Pin}
 };
 
-void SPI::transfer(uint8_t* data, dc_mode_e dc, uint32_t size) {
+bool SPI::_dmaBusy = false;
+SPI_HandleTypeDef* SPI::_hspi = &hspi1;
 
-	const uint32_t Timeout = 100;
-	HAL_GPIO_WritePin(TFT_A0_GPIO_Port, TFT_A0_Pin, dc == DC_COMMAND ? GPIO_PIN_RESET:GPIO_PIN_SET);
-	HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_RESET);
-	HAL_SPI_Transmit(_hspi, data, size, Timeout);
-	HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_SET);
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+	if(hspi == SPI::_hspi) {
+
+		SPI::_dmaBusy = false;
+		HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_SET);
+	}
 }
 
+int8_t SPI::transfer(uint8_t* data, dc_mode_e dc, uint32_t size) {
+
+	int8_t result = -1;
+	if(!_dmaBusy) {
+		_dmaBusy = true;
+		HAL_GPIO_WritePin(TFT_A0_GPIO_Port, TFT_A0_Pin, dc == DC_COMMAND ? GPIO_PIN_RESET:GPIO_PIN_SET);
+		HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_RESET);
+		result = -1*HAL_SPI_Transmit_DMA(_hspi, data, size);
+	}
+	return result;
+}
 
 /* Glue code template for user to fill */
 

@@ -86,10 +86,11 @@ void openDSD::th_dsd_task(void const * argument)
 
 	uint16_t i = 0;
 	do{
-		sprintf(txt, "This is line %d.\n", i);
+		sprintf(txt, "This is line %d. ", i);
 		logger.log(txt);
 		logger.draw();
-		delay(500);
+		tft.updateScreen();
+		//delay(1);
 		i++;
 	}while(i != 0);
 

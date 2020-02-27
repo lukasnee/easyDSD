@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "gfxfont.h"
 
 //=========SETTINGS============
@@ -184,6 +185,13 @@ class Adafruit_GFX : public Print {
 
   }
 
+  static color_rgb16_t colorHEX32To16(color_hex32_t color32) {
+
+  	color_rgb16_t color16 = COLOR_DATA_FORMAT(color32);
+
+    	return color16;
+  }
+
   /**********************************************************************/
   /*!
     @brief   Set draw color.
@@ -191,8 +199,8 @@ class Adafruit_GFX : public Print {
   */
   /**********************************************************************/
 
-  void 	setDrawColor(color_rgb16_t color) {
-	  drawcolor = color;
+  virtual void 	setDrawColor(color_rgb16_t color) {
+	  drawcolor = (color << 8) | (color >> 8);
   };
 
   /**********************************************************************/
@@ -203,7 +211,9 @@ class Adafruit_GFX : public Print {
              are set to same color rather than using a separate flag.
   */
   /**********************************************************************/
-  virtual void setTextColor(color_rgb16_t color) { textcolor = textbgcolor = color; }
+  virtual void setTextColor(color_rgb16_t color) {
+	  textcolor = textbgcolor = (color << 8) | (color >> 8);
+  }
 
   /**********************************************************************/
   /*!
@@ -213,18 +223,9 @@ class Adafruit_GFX : public Print {
   */
   /**********************************************************************/
   virtual void setTextColor(color_rgb16_t color, color_rgb16_t bg) {
-    textcolor   = color;
-    textbgcolor = bg;
+    textcolor   = (color << 8) | (color >> 8);
+    textbgcolor = (bg << 8) | (bg >> 8);
   }
-
-static color_rgb16_t colorHEX32To16(color_hex32_t color32) {
-
-	color_rgb16_t color16 = COLOR_DATA_FORMAT(color32);
-
-  	return color16;
-
-}
-
   /**********************************************************************/
   /*!
     @brief   Set draw color.
@@ -233,7 +234,7 @@ static color_rgb16_t colorHEX32To16(color_hex32_t color32) {
   */
   /**********************************************************************/
   void 	setDrawColor(color_hex32_t color) {
-	  drawcolor = colorHEX32To16(color);
+	  setDrawColor(colorHEX32To16(color));
   };
 
   /**********************************************************************/
@@ -244,7 +245,9 @@ static color_rgb16_t colorHEX32To16(color_hex32_t color32) {
              are set to same color rather than using a separate flag.
   */
   /**********************************************************************/
-  virtual void setTextColor(color_hex32_t color) { textcolor = textbgcolor = colorHEX32To16(color); }
+  virtual void setTextColor(color_hex32_t color) {
+	  setTextColor(colorHEX32To16(color));
+  }
 
   /**********************************************************************/
   /*!
@@ -254,8 +257,7 @@ static color_rgb16_t colorHEX32To16(color_hex32_t color32) {
   */
   /**********************************************************************/
   virtual void setTextColor(color_hex32_t color, color_hex32_t bg) {
-    textcolor   = colorHEX32To16(color);
-    textbgcolor = colorHEX32To16(bg);;
+	  setTextColor(colorHEX32To16(color), colorHEX32To16(bg));
   }
 
   /**********************************************************************/
@@ -356,6 +358,19 @@ static color_rgb16_t colorHEX32To16(color_hex32_t color32) {
     _cp437;         ///< If set, use correct CP437 charset (default is off)
   GFXfont
     *gfxFont;       ///< Pointer to special font
+};
+
+///  A GFX 16-bit canvas context for graphics
+class GFXcanvas16 : public Adafruit_GFX {
+public:
+  GFXcanvas16(uint16_t w, uint16_t h);
+  ~GFXcanvas16(void);
+  void drawPixel(int16_t x, int16_t y, uint16_t color),
+      fillScreen(uint16_t color), byteSwap(void);
+  uint16_t *getBuffer(void) const { return buffer; }
+
+private:
+  uint16_t *buffer;
 };
 
 #endif // _ADAFRUIT_GFX_H

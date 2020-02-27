@@ -30,21 +30,22 @@
 #define	BLACK   		0x0000
 #define WHITE   		0xFFFF
 
-class TFT_ILI9163C : public Adafruit_GFX {
+
+class TFT_ILI9163C : public GFXcanvas16 {
 
  public:
 				TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin = 0xFF);
-	
+	void 		updateScreen(void);
 	void     	begin(void),
 				setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1),//graphic Addressing
-				setCursor(int16_t x,int16_t y),//char addressing
-				pushColor(uint16_t color),
-				fillScreen(uint16_t color = 0x0000),
-				clearScreen(uint16_t color = 0x0000),//same as fillScreen
-				drawPixel(int16_t x, int16_t y, uint16_t color),
-				drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color),
-				drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color),
-				fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t color),
+//				setCursor(int16_t x,int16_t y),//char addressing
+//				pushColor(uint16_t color),
+//				fillScreen(uint16_t color = 0x0000),
+//				clearScreen(uint16_t color = 0x0000),//same as fillScreen
+//				drawPixel(int16_t x, int16_t y, uint16_t color),
+//				drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color),
+//				drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color),
+//				fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t color),
 				setRotation(uint8_t r),
 				invertDisplay(boolean i);
 	uint8_t 	errorCode(void);			
@@ -53,9 +54,9 @@ class TFT_ILI9163C : public Adafruit_GFX {
 	void		sleepMode(boolean mode);
 	void 		defineScrollArea(uint16_t tfa, uint16_t bfa);
 	void		scroll(uint16_t adrs);
-	void 		startPushData(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
-	void 		pushData(uint16_t color);
-	void		writeScreen24(const uint32_t *bitmap,uint16_t size=_TFTWIDTH*_TFTHEIGHT);
+//	void 		startPushData(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+//	void 		pushData(uint16_t color);
+//	void		writeScreen24(const uint32_t *bitmap,uint16_t size=_TFTWIDTH*_TFTHEIGHT);
 
 	inline uint16_t Color565(uint8_t r, uint8_t g, uint8_t b) {return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);};
   //convert 24bit color into packet 16 bit one (credits for this are all mine)

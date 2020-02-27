@@ -2,30 +2,37 @@
 
 #include <limits.h>
 
-TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : Adafruit_GFX(_TFTWIDTH,_TFTHEIGHT)
+TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : GFXcanvas16(_TFTWIDTH,_TFTHEIGHT)
 {
 	_cs   = cspin;
 	_rs   = dcpin;
 	_rst  = rstpin;
 }
 
-	void TFT_ILI9163C::writecommand(uint8_t c)
-	{
-		spi.transfer(&c, DC_COMMAND);
-	}
+void TFT_ILI9163C::updateScreen(void) {
 
-	void TFT_ILI9163C::writedata(uint8_t c)
-	{
-		spi.transfer(&c, DC_DATA);
-	} 
+	homeAddress();
+	spi.transfer((uint8_t*)getBuffer(), DC_DATA, _GRAMWIDTH * _GRAMHEIGH * sizeof(uint16_t));
 
-	void TFT_ILI9163C::writedata16(uint16_t d)
-	{
-		uint8_t a[2];
-		a[0] = d >> 8;
-		a[1] = d;
-		spi.transfer(a, DC_DATA, 2);
-	} 
+}
+
+void TFT_ILI9163C::writecommand(uint8_t c)
+{
+	spi.transfer(&c, DC_COMMAND);
+}
+
+void TFT_ILI9163C::writedata(uint8_t c)
+{
+	spi.transfer(&c, DC_DATA);
+}
+
+void TFT_ILI9163C::writedata16(uint16_t d)
+{
+	uint8_t a[2];
+	a[0] = d >> 8;
+	a[1] = d;
+	spi.transfer(a, DC_DATA, 2);
+}
 
 void TFT_ILI9163C::begin(void) 
 {
@@ -231,7 +238,7 @@ void TFT_ILI9163C::scroll(uint16_t adrs) {
 		writedata16(adrs + __OFFSET);
 	}
 }
-
+/*
 //corrected! v3
 void TFT_ILI9163C::clearScreen(uint16_t color) {
 	int px;
@@ -239,19 +246,23 @@ void TFT_ILI9163C::clearScreen(uint16_t color) {
 	for (px = 0;px < _GRAMSIZE; px++)
 		writedata16(color);
 }
-
+*/
+/*
 void TFT_ILI9163C::startPushData(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
 	setAddr(x0,y0,x1,y1);
 }
-
+*/
+/*
 void TFT_ILI9163C::pushData(uint16_t color) {
 	writedata16(color);
 }
-
+*/
+/*
 void TFT_ILI9163C::pushColor(uint16_t color) {
 	writedata16(color);
 }
-	
+*/
+/*
 void TFT_ILI9163C::writeScreen24(const uint32_t *bitmap,uint16_t size) {
 	uint16_t color, px;
 	writecommand(CMD_RAMWR);
@@ -261,25 +272,27 @@ void TFT_ILI9163C::writeScreen24(const uint32_t *bitmap,uint16_t size) {
 	}
 	homeAddress();
 }
-
+*/
 void TFT_ILI9163C::homeAddress() {
 	setAddrWindow(0x00,0x00,_GRAMWIDTH,_GRAMHEIGH);
 }
-
+/*
 void TFT_ILI9163C::setCursor(int16_t x, int16_t y) {
 	if (boundaryCheck(x,y)) return;
 	setAddrWindow(0x00,0x00,x,y);
 	cursor_x = x;
 	cursor_y = y;
 }
-
+*/
+/*
 void TFT_ILI9163C::drawPixel(int16_t x, int16_t y, uint16_t color) {
 	if (boundaryCheck(x,y)) return;
 	if ((x < 0) || (y < 0)) return;
 	setAddr(x,y,x+1,y+1);
 	writedata16(color);
 }
-
+*/
+/*
 void TFT_ILI9163C::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
 	// Rudimentary clipping
 	if (boundaryCheck(x,y)) return;
@@ -289,12 +302,13 @@ void TFT_ILI9163C::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color
 		writedata16(color);
 	}
 }
+*/
 
 bool TFT_ILI9163C::boundaryCheck(int16_t x,int16_t y){
 	if ((x >= _width) || (y >= _height)) return true;
 	return false;
 }
-
+/*
 void TFT_ILI9163C::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 	// Rudimentary clipping
 	if (boundaryCheck(x,y)) return;
@@ -304,12 +318,14 @@ void TFT_ILI9163C::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color
 		writedata16(color);
 	}
 }
-
+*/
+/*
 void TFT_ILI9163C::fillScreen(uint16_t color) {
 	clearScreen(color);
 }
-
+*/
 // fill a rectangle
+/*
 void TFT_ILI9163C::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 	if (boundaryCheck(x,y)) return;
 	if (((x + w) - 1) >= _width)  w = _width  - x;
@@ -320,7 +336,7 @@ void TFT_ILI9163C::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t
 			writedata16(color);
 	}
 }
-
+*/
 void TFT_ILI9163C::setAddr(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1){
 
 		setAddrWindow(x0,y0,x1,y1);

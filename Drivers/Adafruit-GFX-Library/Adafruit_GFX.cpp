@@ -1394,4 +1394,100 @@ void Adafruit_GFX::invertDisplay(boolean i) {
     // Do nothing, must be subclassed if supported by hardware
 }
 
-/***************************************************************************/
+/***************************************************************************
+/*!
+   @brief    Instatiate a GFX 16-bit canvas context for graphics
+   @param    w   Display width, in pixels
+   @param    h   Display height, in pixels
+*/
+/**************************************************************************/
+GFXcanvas16::GFXcanvas16(uint16_t w, uint16_t h) : Adafruit_GFX(w, h) {
+  uint32_t bytes = w * h * 2;
+  if ((buffer = (uint16_t *)malloc(bytes))) {
+    memset(buffer, 0, bytes);
+  }
+}
+
+/**************************************************************************/
+/*!
+   @brief    Delete the canvas, free memory
+*/
+/**************************************************************************/
+GFXcanvas16::~GFXcanvas16(void) {
+  if (buffer)
+    free(buffer);
+}
+
+/**************************************************************************/
+/*!
+    @brief  Draw a pixel to the canvas framebuffer
+    @param  x   x coordinate
+    @param  y   y coordinate
+    @param  color 16-bit 5-6-5 Color to fill with
+*/
+/**************************************************************************/
+void GFXcanvas16::drawPixel(int16_t x, int16_t y, uint16_t color) {
+  if (buffer) {
+    if ((x < 0) || (y < 0) || (x >= _width) || (y >= _height))
+      return;
+
+    int16_t t;
+    switch (rotation) {
+    case 1:
+      t = x;
+      x = WIDTH - 1 - y;
+      y = t;
+      break;
+    case 2:
+      x = WIDTH - 1 - x;
+      y = HEIGHT - 1 - y;
+      break;
+    case 3:
+      t = x;
+      x = y;
+      y = HEIGHT - 1 - t;
+      break;
+    }
+    buffer[x + y * WIDTH] = color;
+  }
+}
+
+/**************************************************************************/
+/*!
+    @brief  Fill the framebuffer completely with one color
+    @param  color 16-bit 5-6-5 Color to fill with
+*/
+/**************************************************************************/
+void GFXcanvas16::fillScreen(uint16_t color) {
+  if (buffer) {
+    uint8_t hi = color >> 8, lo = color & 0xFF;
+    if (hi == lo) {
+      memset(buffer, lo, WIDTH * HEIGHT * 2);
+    } else {
+      uint32_t i, pixels = WIDTH * HEIGHT;
+      for (i = 0; i < pixels; i++)
+        buffer[i] = color;
+    }
+  }
+}
+
+/**************************************************************************/
+/*!
+    @brief  Reverses the "endian-ness" of each 16-bit pixel within the
+            canvas; little-endian to big-endian, or big-endian to little.
+            Most microcontrollers (such as SAMD) are little-endian, while
+            most displays tend toward big-endianness. All the drawing
+            functions (including RGB bitmap drawing) take care of this
+            automatically, but some specialized code (usually involving
+            DMA) can benefit from having pixel data already in the
+            display-native order. Note that this does NOT convert to a
+            SPECIFIC endian-ness, it just flips the bytes within each word.
+*/
+/**************************************************************************/
+void GFXcanvas16::byteSwap(void) {
+  if (buffer) {
+    uint32_t i, pixels = WIDTH * HEIGHT;
+    for (i = 0; i < pixels; i++)
+      buffer[i] = __builtin_bswap16(buffer[i]);
+  }
+}

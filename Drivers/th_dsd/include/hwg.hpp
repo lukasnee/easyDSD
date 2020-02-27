@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi);
+
 #ifdef __cplusplus
 }
 #endif
@@ -94,16 +96,17 @@ class SPI {
 
 public:
 
-	SPI(){
-		_hspi = &hspi1;
-	}
+	SPI() {}
 	void begin() {};
-	void transfer(uint8_t* data, dc_mode_e dc, uint32_t size = 1);
+	int8_t transfer(uint8_t* data, dc_mode_e dc, uint32_t size = 1);
 
 	/* dummy code. todo: add functionality to it if ever needed... */
 
 private:
-	SPI_HandleTypeDef* _hspi;
+	static bool _dmaBusy;
+	static SPI_HandleTypeDef* _hspi;
+
+	friend void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi);
 };
 
 extern SPI spi;
