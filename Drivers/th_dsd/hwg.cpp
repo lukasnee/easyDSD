@@ -28,6 +28,23 @@ extern "C" {
 
 SPI spi;
 
+void Print::printDebug(char * const buffer, uint32_t size) {
+
+	for(auto buff = buffer; buff != buffer + size; buff++) {
+
+		switch(*buff) {
+			case '\0': print("_");break;
+			case '\n': print("/");break;
+			default: write(*buff); break;
+		}
+
+	}
+}
+
+void Print::print(unsigned char c) {
+	write(c);
+}
+
 void Print::print(String str) {
 /* deprecated - for <string> todo */
 //	for (auto it = str.begin(); it != str.end(); ++it) {

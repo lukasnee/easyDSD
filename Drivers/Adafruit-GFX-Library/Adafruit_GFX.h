@@ -367,10 +367,12 @@ public:
   ~GFXcanvas16(void);
   void drawPixel(int16_t x, int16_t y, uint16_t color),
       fillScreen(uint16_t color), byteSwap(void);
-  uint16_t *getBuffer(void) const { return buffer; }
-
+  uint16_t *getBuffer(void) const { return !_pingPong ? _buffer_ping : _buffer_pong; }
+  void togglePingPong() { _pingPong = !_pingPong; };
 private:
-  uint16_t *buffer;
+  uint16_t *_buffer_ping;
+  uint16_t *_buffer_pong;
+  bool _pingPong;
 };
 
 #endif // _ADAFRUIT_GFX_H

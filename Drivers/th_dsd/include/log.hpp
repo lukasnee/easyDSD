@@ -17,10 +17,7 @@ class Logger{
 public:
 
 	Logger(Adafruit_GFX* disp, uint16_t x, uint16_t y, uint16_t w, uint16_t h) :
-		_disp(disp), _x(), _y(y), _w(w), _h(h), _head(0) {
-		_y += 5*_disp->getCharMaxHeight();
-	};
-
+		_disp(disp), _x(), _y(y), _w(w), _h(h), _head(0) { };
 	void log(String str);
 	void draw(void);
 

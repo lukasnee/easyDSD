@@ -77,8 +77,9 @@ typedef enum tft_pinout_id_{
 
 class Print {
 public:
-
 	virtual size_t write(unsigned char c) = 0;
+	void printDebug(char * const buffer, uint32_t size);
+	void print(unsigned char c);
 	void print(String str);
 	void println(String str = "\0");
 	void print(const float value);

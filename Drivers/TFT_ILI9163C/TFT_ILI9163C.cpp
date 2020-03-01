@@ -11,6 +11,7 @@ TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : GFXcanv
 
 void TFT_ILI9163C::updateScreen(void) {
 
+	togglePingPong();
 	homeAddress();
 	spi.transfer((uint8_t*)getBuffer(), DC_DATA, _GRAMWIDTH * _GRAMHEIGH * sizeof(uint16_t));
 

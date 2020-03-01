@@ -82,31 +82,54 @@ void openDSD::th_dsd_task(void const * argument)
 	tft.begin();
 	dsd.buttonsBegin();
 
-	char txt[100] = {0};
+	char txt[500] = {0};
+	static uint16_t i = 0;
 
-	uint16_t i = 0;
 	do{
-		sprintf(txt, "This is line %d. ", i);
+		sprintf(txt, "This is line %d.\n", i);
 		logger.log(txt);
 		logger.draw();
 		tft.updateScreen();
-		//delay(1);
+		delay(100);
 		i++;
 	}while(i != 0);
 
+	while(1) {
 
-	while (true) {
+		dsd.buttonsUpdate();
 
+		if (dsd.btn[BTN_UP].wasPressed()) {
+			i++;
+			sprintf(txt, "The number is: %d.\n", i);
+			sprintf(txt, "12345");
+			logger.log(txt);
+		}
+		if (dsd.btn[BTN_OK].wasPressed()) {
 
-//		dsd.buttonsUpdate();
-//
-//		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
-//				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(500) | dsd.btn[BTN_OK].wasPressed()));
-//		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
-//				(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
+			for(int a = 32; a < i; a++)
+				*(txt+a-32) = a;
+			*(txt+i) = '\0';
+			logger.log(txt);
+		}
 
+		if (dsd.btn[BTN_DOWN].wasPressed()) {
+			i--;
+			sprintf(txt, "ABCDEF");
+			//sprintf(txt, "The number is: %d.\n", i);
+			logger.log(txt);
+		}
+
+		logger.draw();
+		tft.updateScreen();
 	}
 }
+
+//dsd.buttonsUpdate();
+//
+//HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
+//		(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(500) | dsd.btn[BTN_OK].wasPressed()));
+//HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
+//		(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
 
 void th_dsd_start(void) {
 

@@ -1401,10 +1401,14 @@ void Adafruit_GFX::invertDisplay(boolean i) {
    @param    h   Display height, in pixels
 */
 /**************************************************************************/
-GFXcanvas16::GFXcanvas16(uint16_t w, uint16_t h) : Adafruit_GFX(w, h) {
+GFXcanvas16::GFXcanvas16(uint16_t w, uint16_t h) : Adafruit_GFX(w, h), _pingPong(false) {
   uint32_t bytes = w * h * 2;
-  if ((buffer = (uint16_t *)malloc(bytes))) {
-    memset(buffer, 0, bytes);
+  if ((_buffer_ping = (uint16_t *)malloc(bytes)) && (_buffer_pong = (uint16_t *)malloc(bytes))) {
+    memset(_buffer_ping, 0, bytes);
+    memset(_buffer_pong, 0, bytes);
+  }
+  else {
+	  this->~GFXcanvas16();
   }
 }
 
@@ -1414,8 +1418,8 @@ GFXcanvas16::GFXcanvas16(uint16_t w, uint16_t h) : Adafruit_GFX(w, h) {
 */
 /**************************************************************************/
 GFXcanvas16::~GFXcanvas16(void) {
-  if (buffer)
-    free(buffer);
+  if (_buffer_ping) free(_buffer_ping);
+  if (_buffer_pong) free(_buffer_pong);
 }
 
 /**************************************************************************/
@@ -1427,7 +1431,7 @@ GFXcanvas16::~GFXcanvas16(void) {
 */
 /**************************************************************************/
 void GFXcanvas16::drawPixel(int16_t x, int16_t y, uint16_t color) {
-  if (buffer) {
+  if (_buffer_ping && _buffer_pong) {
     if ((x < 0) || (y < 0) || (x >= _width) || (y >= _height))
       return;
 
@@ -1448,7 +1452,7 @@ void GFXcanvas16::drawPixel(int16_t x, int16_t y, uint16_t color) {
       y = HEIGHT - 1 - t;
       break;
     }
-    buffer[x + y * WIDTH] = color;
+    *((_pingPong ? _buffer_ping : _buffer_pong) + y * WIDTH + x) = color;
   }
 }
 
@@ -1459,14 +1463,14 @@ void GFXcanvas16::drawPixel(int16_t x, int16_t y, uint16_t color) {
 */
 /**************************************************************************/
 void GFXcanvas16::fillScreen(uint16_t color) {
-  if (buffer) {
+  if (_buffer_ping && _buffer_pong) {
     uint8_t hi = color >> 8, lo = color & 0xFF;
     if (hi == lo) {
-      memset(buffer, lo, WIDTH * HEIGHT * 2);
+      memset((_pingPong ? _buffer_ping : _buffer_pong), lo, WIDTH * HEIGHT * 2);
     } else {
       uint32_t i, pixels = WIDTH * HEIGHT;
       for (i = 0; i < pixels; i++)
-        buffer[i] = color;
+      	*((_pingPong ? _buffer_ping : _buffer_pong) + i) = color;
     }
   }
 }
@@ -1485,9 +1489,12 @@ void GFXcanvas16::fillScreen(uint16_t color) {
 */
 /**************************************************************************/
 void GFXcanvas16::byteSwap(void) {
-  if (buffer) {
+  if (_buffer_ping && _buffer_pong) {
     uint32_t i, pixels = WIDTH * HEIGHT;
-    for (i = 0; i < pixels; i++)
-      buffer[i] = __builtin_bswap16(buffer[i]);
+    uint16_t* buff_i;
+    for (i = 0; i < pixels; i++) {
+    	buff_i = (_pingPong ? _buffer_ping : _buffer_pong) + i;
+    	*buff_i = __builtin_bswap16(*buff_i);
+    }
   }
 }
