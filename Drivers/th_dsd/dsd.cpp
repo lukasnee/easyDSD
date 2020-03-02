@@ -17,6 +17,7 @@
 
 #include <dsd.hpp>
 #include <log.hpp>
+#include <filexp.hpp>
 #include "wucyFont8pt7b.h"
 
 
@@ -45,15 +46,16 @@ void th_dsd_start(void) {
 void openDSD::th_dsd_task(void const * argument)
 {
 
-	static Logger logger(&tft, 0, 0, 128, 128);
-
 	tft.begin();
+	Logger logger(&tft, 0, 0, 128, 128);
+	Filexp storage(&tft, 0, 0, 128, 128);
+
 	dsd.buttonsBegin();
 
 	char c;
 	char txt[500] = {0};
 	static uint16_t i = 0;
-
+/*
 	do{
 //		sprintf(txt, "This is line %d.\n", i);
 //		logger.log(txt);
@@ -67,9 +69,10 @@ void openDSD::th_dsd_task(void const * argument)
 		//delay(100);
 		i++;
 	}while(i != 0);
-
+*/
 	while(true) {
 
+		storage.list("*.*");
 		dsd.buttonsUpdate();
 
 		if (dsd.btn[BTN_UP].wasPressed()) {
@@ -93,7 +96,7 @@ void openDSD::th_dsd_task(void const * argument)
 			logger.log(txt);
 		}
 
-		logger.draw();
+		//logger.draw();
 		tft.updateScreen();
 	}
 }

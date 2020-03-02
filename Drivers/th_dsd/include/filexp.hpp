@@ -27,31 +27,67 @@
 extern "C" {
 #endif
 
-// all of your legacy C code here
+#include "stdio.h"
 
 #ifdef __cplusplus
 }
 #endif
-#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
-//#include "cmsis_os.h"		/* cmsis freeRTOS API */
+
 #include "fatfs.h"			/* FAT32 file system */
-//#include <hwg.hpp> 	/* hardware glue code for user to fill */
+#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
+#include "Adafruit_GFX.h"
+
+#define FR_BEGIN \
+	FRESULT res = FR_OK;
+
+#define FR_TRY(function) \
+		res = function; \
+		if (res != FR_OK ) errorHandler(res)	\
+
+#define FR_DO \
+		do {
+
+#define FR_WHILE(function) \
+			res = function; \
+		}while(res == FR_OK)
+
+
+#define FR_END \
+	fr_end:;
+
+#define FR_END_R \
+fr_end:;\
+	return res;
 
 extern uint8_t retSD;    /* Return value for SD */
 extern char SDPath[4];   /* SD logical drive path */
 extern FATFS SDFatFS;    /* File system object for SD logical drive */
 extern FIL SDFile;       /* File object for SD */
 
+
+
 class Filexp {
 
 public:
 
-	Filexp() {};
+	Filexp(Adafruit_GFX* disp, uint16_t x, uint16_t y, uint16_t w, uint16_t h) :
+		_disp(disp), _x(), _y(y), _w(w), _h(h) {};
 	~Filexp() {};
+
+	void list(const char * pattern);
+
+	FRESULT mount(void),
+			unmount(void),
+			open(const TCHAR* path,	BYTE mode),
+			close(void),
+			write(const void* buff, UINT btw, UINT &bw),
+			read(void* buff, UINT btr, UINT &br);
 
 protected:
 private:
-
+	static void errorHandler(FRESULT r);
+	Adafruit_GFX* _disp; /* gfx to draw in */
+	uint16_t _x, _y, _w, _h; /* log window position and dimensions */
 
 };
 
