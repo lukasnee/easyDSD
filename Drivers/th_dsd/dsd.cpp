@@ -17,22 +17,8 @@
 
 #include <dsd.hpp>
 #include <log.hpp>
+#include "wucyFont8pt7b.h"
 
-/*void* operator new(size_t size) {
-	return pvPortMalloc(size);
-}
-
-void* operator new[](size_t size) {
-	return pvPortMalloc(size);
-}
-
-void operator delete(void *ptr) {
-	vPortFree(ptr);
-}
-
-void operator delete[](void *ptr) {
-	vPortFree(ptr);
-}*/
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,54 +33,42 @@ extern "C" {
 //osThreadId defaultTaskHandle;
 
 
+openDSD dsd;
 TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
 
-unsigned long testText() {
-
-	static char c = 0;
-
-	tft.setFont(&wucyFont8pt7b);
-
-	tft.setTextWrap(true);
-	tft.setBounds(tft.width(), tft.height());
-
-	//tft.fillScreen();
-
-	tft.setTextColor(C_YELLOW);
-	tft.setTextSize(2);
-	tft.setCursor(0, tft.getCharMaxHeight());
-	tft.println("openDSD\n");
-	tft.setCursor(0, tft.getCharMaxHeight()*3);
-	tft.setTextColor(C_LIME);
-	tft.setTextSize(1);
-	for(unsigned int i = c; i <= 4*0xFF; i++)
-		tft.write((char)i);
-	c++;
+void th_dsd_start(void) {
+//	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
+//	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
+	openDSD::th_dsd_task(NULL);
 }
 
 void openDSD::th_dsd_task(void const * argument)
 {
 
-
-	static openDSD dsd;
 	static Logger logger(&tft, 0, 0, 128, 128);
 
 	tft.begin();
 	dsd.buttonsBegin();
 
+	char c;
 	char txt[500] = {0};
 	static uint16_t i = 0;
 
 	do{
-		sprintf(txt, "This is line %d.\n", i);
-		logger.log(txt);
+//		sprintf(txt, "This is line %d.\n", i);
+//		logger.log(txt);
+
+		c = 32 + rand() % 96;
+		if(c == 127) c = '\n';
+		logger.log(c);
+
 		logger.draw();
 		tft.updateScreen();
-		delay(100);
+		//delay(100);
 		i++;
 	}while(i != 0);
 
-	while(1) {
+	while(true) {
 
 		dsd.buttonsUpdate();
 
@@ -131,14 +105,47 @@ void openDSD::th_dsd_task(void const * argument)
 //HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin,
 //		(GPIO_PinState) (dsd.btn[BTN_OK].pressedFor(1000) | dsd.btn[BTN_OK].wasReleased()));
 
-void th_dsd_start(void) {
 
-//	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
-//	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
 
-	openDSD::th_dsd_task(NULL);
-
+/*void* operator new(size_t size) {
+	return pvPortMalloc(size);
 }
 
+void* operator new[](size_t size) {
+	return pvPortMalloc(size);
+}
+
+void operator delete(void *ptr) {
+	vPortFree(ptr);
+}
+
+void operator delete[](void *ptr) {
+	vPortFree(ptr);
+}*/
+
+/*
+	static void testText(void) {
+
+		static char c = 0;
+
+		tft.setFont(&wucyFont8pt7b);
+
+		tft.setTextWrap(true);
+		tft.setBounds(tft.width(), tft.height());
+
+		//tft.fillScreen();
+
+		tft.setTextColor(C_YELLOW);
+		tft.setTextSize(2);
+		tft.setCursor(0, tft.getCharMaxHeight());
+		tft.println("openDSD\n");
+		tft.setCursor(0, tft.getCharMaxHeight()*3);
+		tft.setTextColor(C_LIME);
+		tft.setTextSize(1);
+		for(unsigned int i = c; i <= 4*0xFF; i++)
+			tft.write((char)i);
+		c++;
+	}
+*/
 
 /* end of th_dsd.cpp */

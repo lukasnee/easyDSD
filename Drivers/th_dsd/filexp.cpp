@@ -18,6 +18,8 @@
 
 #include "filexp.hpp"
 
+#include "string.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,5 +30,38 @@ extern "C" {
 }
 #endif
 
+
+void foo(void) {
+
+	FRESULT res;                                          /* FatFs function common result code */
+	UINT byteswritten, bytesread;                     /* File write/read counts */
+	uint8_t wtext[] = "Hello from bambukas :)"; /* File write buffer */
+	uint8_t rtext[100];                                   /* File read buffer */
+
+	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) == FR_OK)
+	{
+		HAL_Delay(200);
+
+		//Open file for writing (Create)
+		if(f_open(&SDFile, "F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
+
+			//Write to the text file
+			res = f_write(&SDFile, wtext, strlen((char *)wtext), &byteswritten);
+
+			f_close(&SDFile);
+
+			//Test read file
+			f_open(&SDFile, "F7FILE5.TXT",  FA_READ);
+			memset(rtext,0,sizeof(rtext));
+			res = f_read(&SDFile, rtext, sizeof(rtext), &bytesread);
+
+			f_close(&SDFile);
+		}
+	}
+
+
+	f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
+
+}
 
 /* Glue code template for user to fill */

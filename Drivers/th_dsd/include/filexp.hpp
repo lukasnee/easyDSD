@@ -32,11 +32,28 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#include "main.h"
 #include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
 //#include "cmsis_os.h"		/* cmsis freeRTOS API */
 #include "fatfs.h"			/* FAT32 file system */
-#include <hwg.hpp> 	/* hardware glue code for user to fill */
+//#include <hwg.hpp> 	/* hardware glue code for user to fill */
+
+extern uint8_t retSD;    /* Return value for SD */
+extern char SDPath[4];   /* SD logical drive path */
+extern FATFS SDFatFS;    /* File system object for SD logical drive */
+extern FIL SDFile;       /* File object for SD */
+
+class Filexp {
+
+public:
+
+	Filexp() {};
+	~Filexp() {};
+
+protected:
+private:
+
+
+};
+
 
 #endif  // FILEXP_HPP_

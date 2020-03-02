@@ -1338,7 +1338,8 @@ void Adafruit_GFX::charBounds(char c, int16_t *x, int16_t *y,
 */
 /**************************************************************************/
 void Adafruit_GFX::getTextBounds(const char *str, int16_t x, int16_t y,
-        int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h) {
+        int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h,
+		const char* buffStart, const char* buffEnd) {
     uint8_t c; // Current character
 
     *x1 = x;
@@ -1350,21 +1351,33 @@ void Adafruit_GFX::getTextBounds(const char *str, int16_t x, int16_t y,
 			maxx = -1,
 			maxy = -1;
 
-    while((c = *str++)) {
+    if(!buffStart || !buffEnd) { // non circular buffer string
 
-        charBounds(c, &x, &y, &minx, &miny, &maxx, &maxy);
+	 while((c = *str++)) {
+
+			charBounds(c, &x, &y, &minx, &miny, &maxx, &maxy);
+
+		}
 
     }
+    else { // circular buffer with start and end pointers
 
+	 while((c = *str++)) {
 
-if(maxx >= minx) {
-        *x1 = minx;
-        *w  = maxx - minx + 1;
+			charBounds(c, &x, &y, &minx, &miny, &maxx, &maxy);
+			if (str == buffEnd + 1)
+				str = buffStart;
     }
-    if(maxy >= miny) {
-        *y1 = miny;
-        *h  = maxy - miny + 1;
-    }
+
+	if(maxx >= minx) {
+			*x1 = minx;
+			*w  = maxx - minx + 1;
+		}
+		if(maxy >= miny) {
+			*y1 = miny;
+			*h  = maxy - miny + 1;
+		}
+	}
 }
 /**************************************************************************/
 /*!

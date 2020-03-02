@@ -154,7 +154,7 @@ class Adafruit_GFX : public Print {
     drawChar(int16_t x, int16_t y, unsigned char c,
 	      uint16_t bg, uint8_t size_x, uint8_t size_y),
     getTextBounds(const char *string, int16_t x, int16_t y,
-      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h),
+      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, const char* buffStart = NULL, const char* buffEnd = NULL),
 //	getTextBounds(const std::string &str, int16_t x, int16_t y,
 //	          int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h),
     setTextSize(uint8_t s),

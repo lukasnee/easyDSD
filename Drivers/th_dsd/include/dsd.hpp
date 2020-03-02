@@ -30,13 +30,11 @@ extern "C" {
 #include "fatfs.h"			/* FAT32 file system */
 //#include <tag.h>			/* library for ID3v2 decoding from .dsf file */
 
-#include "filer.h"
 #include "sound.h"
 
 #ifdef __cplusplus
 }
 #endif
-
 
 
 #define WUCY_OS
@@ -46,7 +44,7 @@ extern "C" {
 #include <Adafruit_GFX.h>
 #include <TFT_ILI9163C.h> 	/* display driver */
 #include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
-#include "wucyFont8pt7b.h"
+extern const GFXfont wucyFont8pt7b;
 
 typedef enum button_map_{
 
@@ -58,10 +56,7 @@ BTN_COUNT} button_map;
 
 class openDSD
 {
-
-	friend void th_dsd_start(void);
-
-    private:
+	public:
 	openDSD() {}
 
 	static void th_dsd_task(void const * argument);
@@ -78,11 +73,29 @@ class openDSD
 			btn[i].begin();
 	}
 
+	button_map buttonWasPressed(void)
+	{
+		buttonsUpdate();
+		for(uint8_t i = 0; i < BTN_COUNT; i++) {
+			if (btn[i].wasPressed())
+				return static_cast<button_map>(i); // wasPressed
+		}
+		return BTN_COUNT; // none presssed
+	}
+
 	Button btn[BTN_COUNT] = {
 			{BTN_UP_GPIO_Port, BTN_UP_Pin},
 			{BTN_OK_GPIO_Port, BTN_OK_Pin},
 			{BTN_DOWN_GPIO_Port, BTN_DOWN_Pin}
 	};
+
+	friend void th_dsd_start(void);
+
 };
+
+
+extern TFT_ILI9163C tft;
+extern openDSD dsd;
+
 
 #endif  // DSD_HPP_
