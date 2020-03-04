@@ -1,5 +1,5 @@
 /*
-	SD card FAT32 file explorer for openDSD.
+	SD card FAT32 storage wrapper for openDSD.
 	Glue code for your specific hardware (initially designed for STM32F407VE).
 
 	License: GPL 3.0
@@ -16,7 +16,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "filexp.hpp"
+#include <storage.hpp>
 #include "string.h"
 
 #ifdef __cplusplus
@@ -29,7 +29,7 @@ extern "C" {
 }
 #endif
 
-void Filexp:: errorHandler(FRESULT r) {
+void Storage::errorHandler(FRESULT r) {
 
 	const char* errorMsg[] {
 		"FR_OK",					/* (0) Succeeded */
@@ -55,27 +55,27 @@ void Filexp:: errorHandler(FRESULT r) {
 	};
 }
 
-FRESULT Filexp::mount(void) {
+FRESULT Storage::mount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0));
 	FR_END_R
 }
-FRESULT Filexp::unmount(void) {
+FRESULT Storage::unmount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)NULL, 0));
 	FR_END_R
 }
-FRESULT Filexp::open(const TCHAR* path,	BYTE mode) {
+FRESULT Storage::open(const TCHAR* path,	BYTE mode) {
 	FR_BEGIN
 	FR_TRY(f_open(&SDFile, path, mode));
 	FR_END_R
 }
-FRESULT Filexp::close(void) {
+FRESULT Storage::close(void) {
 	FR_BEGIN
 	FR_TRY(f_close(&SDFile));
 	FR_END_R
 }
-FRESULT Filexp::write(
+FRESULT Storage::write(
 	const void* buff,	/* Pointer to the data to be written */
 	UINT btw,			/* Number of bytes to write */
 	UINT &bw			/* Pointer to number of bytes written */
@@ -84,7 +84,7 @@ FRESULT Filexp::write(
 	FR_TRY(f_write(&SDFile, buff, btw, &bw));
 	FR_END_R
 }
-FRESULT Filexp::read(
+FRESULT Storage::read(
 	void* buff,	/* Pointer to data buffer */
 	UINT btr,	/* Number of bytes to read */
 	UINT &br	/* Pointer to number of bytes read */
@@ -94,36 +94,12 @@ FRESULT Filexp::read(
 	FR_END_R
 }
 
+FRESULT Storage::getSDPath(String path) {
+	FR_BEGIN
+		path = SDPath;
+	FR_END
+};
 
-void Filexp::list(const char * pattern) {
-
-FR_BEGIN
-	char fileStr[100];
-	DIR dp;
-	FILINFO fno;
-	uint16_t index = 0, i_cursor = 0, i_end;
-
-	mount();
-
-	FR_TRY(f_findfirst(&dp, &fno, SDPath, pattern));
-
-	_disp->setTextWrap(true);
-	_disp->setBounds(_w, _h);
-	_disp->setFont(&wucyFont8pt7b);
-	_disp->setTextSize(1);
-	_disp->setDrawColor(C_BLACK);
-	_disp->fillRect(_x, _y, _w, _h);
-	_disp->setCursor(_x, _y + _disp->getCharMaxHeight());
-
-	FR_DO
-		sprintf(fileStr, "%.*s %lu \n", 30, fno.fname, fno.fsize);
-		_disp->setTextColor(index == i_cursor ? C_YELLOW : C_LIME);
-		_disp->print(fileStr);
-		index++;
-	FR_WHILE(f_findnext(&dp, &fno));
-
-FR_END
-}
 
 
 /*

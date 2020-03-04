@@ -14,8 +14,8 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef FILEXP_HPP_
-#define FILEXP_HPP_
+#ifndef STORAGE_HPP_
+#define STORAGE_HPP_
 
  #ifdef __cplusplus
  #define EXTERNC extern "C"
@@ -42,7 +42,8 @@ extern "C" {
 
 #define FR_TRY(function) \
 		res = function; \
-		if (res != FR_OK ) errorHandler(res)	\
+		if (res != FR_OK ) Storage::errorHandler(res)	\
+
 
 #define FR_DO \
 		do {
@@ -52,11 +53,9 @@ extern "C" {
 		}while(res == FR_OK)
 
 
-#define FR_END \
-	fr_end:;
+#define FR_END fr_end:;
 
-#define FR_END_R \
-fr_end:;\
+#define FR_END_R fr_end:;\
 	return res;
 
 extern uint8_t retSD;    /* Return value for SD */
@@ -66,30 +65,27 @@ extern FIL SDFile;       /* File object for SD */
 
 
 
-class Filexp {
+class Storage {
 
 public:
 
-	Filexp(Adafruit_GFX* disp, uint16_t x, uint16_t y, uint16_t w, uint16_t h) :
-		_disp(disp), _x(), _y(y), _w(w), _h(h) {};
-	~Filexp() {};
+	Storage(void)  {};
+	~Storage(void) {};
 
-	void list(const char * pattern);
+	static void errorHandler(FRESULT r);
 
 	FRESULT mount(void),
 			unmount(void),
 			open(const TCHAR* path,	BYTE mode),
 			close(void),
 			write(const void* buff, UINT btw, UINT &bw),
-			read(void* buff, UINT btr, UINT &br);
+			read(void* buff, UINT btr, UINT &br),
+			getSDPath(String path);
 
 protected:
 private:
-	static void errorHandler(FRESULT r);
-	Adafruit_GFX* _disp; /* gfx to draw in */
-	uint16_t _x, _y, _w, _h; /* log window position and dimensions */
 
 };
 
 
-#endif  // FILEXP_HPP_
+#endif  // STORAGE_HPP_

@@ -44,6 +44,9 @@ extern "C" {
 #include <Adafruit_GFX.h>
 #include <TFT_ILI9163C.h> 	/* display driver */
 #include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
+#include <log.hpp>
+#include "storage.hpp"
+
 extern const GFXfont wucyFont8pt7b;
 
 typedef enum button_map_{
@@ -54,13 +57,20 @@ typedef enum button_map_{
 
 BTN_COUNT} button_map;
 
-class openDSD
+class openDSD :
+		public TFT_ILI9163C,
+		public Storage
 {
 	public:
-	openDSD() {}
+	openDSD() : TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) {
+		TFT_ILI9163C::begin();
+	}
+
+	FRESULT scanFiles(char* path);
+	void list(const char * pattern);
 
 	static void th_dsd_task(void const * argument);
-
+//todo: button abstractions should go to button clas maybe ?
 	void buttonsUpdate(void)
 	{
 		for(uint8_t i = 0; i < BTN_COUNT; i++)

@@ -16,8 +16,6 @@
 */
 
 #include <dsd.hpp>
-#include <log.hpp>
-#include <filexp.hpp>
 #include "wucyFont8pt7b.h"
 
 
@@ -35,7 +33,7 @@ extern "C" {
 
 
 openDSD dsd;
-TFT_ILI9163C tft = TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET);
+
 
 void th_dsd_start(void) {
 //	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
@@ -46,9 +44,10 @@ void th_dsd_start(void) {
 void openDSD::th_dsd_task(void const * argument)
 {
 
-	tft.begin();
-	Logger logger(&tft, 0, 0, 128, 128);
-	Filexp storage(&tft, 0, 0, 128, 128);
+	Logger logger(&dsd, 0, 0, 128, 128);
+
+	//dsd.list("*.*");
+	dsd.scanFiles("/");
 
 	dsd.buttonsBegin();
 
@@ -72,34 +71,87 @@ void openDSD::th_dsd_task(void const * argument)
 */
 	while(true) {
 
-		storage.list("*.*");
 		dsd.buttonsUpdate();
 
-		if (dsd.btn[BTN_UP].wasPressed()) {
-			i++;
-			sprintf(txt, "The number is: %d.\n", i);
-			sprintf(txt, "12345");
-			logger.log(txt);
-		}
-		if (dsd.btn[BTN_OK].wasPressed()) {
-
-			for(int a = 32; a < i; a++)
-				*(txt+a-32) = a;
-			*(txt+i) = '\0';
-			logger.log(txt);
-		}
-
-		if (dsd.btn[BTN_DOWN].wasPressed()) {
-			i--;
-			sprintf(txt, "ABCDEF");
-			//sprintf(txt, "The number is: %d.\n", i);
-			logger.log(txt);
-		}
 
 		//logger.draw();
-		tft.updateScreen();
+		dsd.updateScreen();
 	}
 }
+
+FRESULT openDSD::scanFiles (
+    char* path        /* Start node to be scanned (***also used as work area***) */
+)
+{
+    FRESULT res;
+    DIR dir;
+    UINT i;
+    static FILINFO fno;
+    char strLine[50];
+
+	setTextWrap(true);
+	setBounds(_GRAMWIDTH, _GRAMHEIGH);
+	setFont(&wucyFont8pt7b);
+	setTextSize(1);
+	setDrawColor(C_BLACK);
+	fillRect(0, 0, _GRAMWIDTH, _GRAMHEIGH);
+	setCursor(0, 0 + getCharMaxHeight());
+	setTextColor(C_LIME);
+
+    res = f_opendir(&dir, path);                       /* Open the directory */
+    if (res == FR_OK) {
+        for (;;) {
+            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+            if (fno.fattrib & AM_DIR) {                    /* It is a directory */
+                i = strlen(path);
+                sprintf(&path[i], "/%s", fno.fname);
+                res = scanFiles(path);                    /* Enter the directory */
+                if (res != FR_OK) break;
+                path[i] = 0;
+            } else {                                       /* It is a file. */
+                sprintf(strLine, "%s/%s\n", path, fno.fname);
+                print(strLine);
+            }
+        }
+        f_closedir(&dir);
+    }
+
+    return res;
+}
+
+void openDSD::list(const char * pattern) {
+
+FR_BEGIN
+	char fileStr[100];
+	DIR dp = { 0 };
+	FILINFO fno = { 0 };
+	uint16_t index = 0, i_cursor = 0, i_end;
+
+	FR_TRY(mount());
+	//FR_TRY(f_readdir(&dp,&fno));
+	FR_TRY(unmount());
+
+	//FR_TRY(f_findfirst(&dp, &fno, SDPath, pattern));
+
+//	setTextWrap(true);
+//	setBounds(_w, _h);
+//	setFont(&wucyFont8pt7b);
+//	setTextSize(1);
+//	setDrawColor(C_BLACK);
+//	fillRect(_x, _y, _w, _h);
+//	setCursor(_x, _y + getCharMaxHeight());
+
+	//FR_DO
+//		sprintf(fileStr, "%.*s %lu \n", 30, fno.fname, fno.fsize);
+//		setTextColor(index == i_cursor ? C_YELLOW : C_LIME);
+//		print(fileStr);
+//		index++;
+	//FR_WHILE(f_findnext(&dp, &fno));
+
+FR_END
+}
+
 
 //dsd.buttonsUpdate();
 //
@@ -150,5 +202,29 @@ void operator delete[](void *ptr) {
 		c++;
 	}
 */
+
+//
+//		if (dsd.btn[BTN_UP].wasPressed()) {
+//			i++;
+//			sprintf(txt, "The number is: %d.\n", i);
+//			sprintf(txt, "12345");
+//			logger.log(txt);
+//		}
+//		if (dsd.btn[BTN_OK].wasPressed()) {
+//
+//			for(int a = 32; a < i; a++)
+//				*(txt+a-32) = a;
+//			*(txt+i) = '\0';
+//			logger.log(txt);
+//		}
+//
+//		if (dsd.btn[BTN_DOWN].wasPressed()) {
+//			i--;
+//			sprintf(txt, "ABCDEF");
+//			//sprintf(txt, "The number is: %d.\n", i);
+//			logger.log(txt);
+//		}
+
+
 
 /* end of th_dsd.cpp */
