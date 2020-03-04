@@ -64,10 +64,11 @@ class openDSD :
 	public:
 	openDSD() : TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) {
 		TFT_ILI9163C::begin();
+		Storage::sd_mount();
 	}
 
 	FRESULT scanFiles(char* path);
-	void list(const char * pattern);
+	//void list(const char * pattern);
 
 	static void th_dsd_task(void const * argument);
 //todo: button abstractions should go to button clas maybe ?

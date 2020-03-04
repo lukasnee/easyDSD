@@ -55,27 +55,27 @@ void Storage::errorHandler(FRESULT r) {
 	};
 }
 
-FRESULT Storage::mount(void) {
+FRESULT Storage::sd_mount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0));
 	FR_END_R
 }
-FRESULT Storage::unmount(void) {
+FRESULT Storage::sd_unmount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)NULL, 0));
 	FR_END_R
 }
-FRESULT Storage::open(const TCHAR* path,	BYTE mode) {
+FRESULT Storage::sd_open(const TCHAR* path, BYTE mode) {
 	FR_BEGIN
 	FR_TRY(f_open(&SDFile, path, mode));
 	FR_END_R
 }
-FRESULT Storage::close(void) {
+FRESULT Storage::sd_close(void) {
 	FR_BEGIN
 	FR_TRY(f_close(&SDFile));
 	FR_END_R
 }
-FRESULT Storage::write(
+FRESULT Storage::sd_write(
 	const void* buff,	/* Pointer to the data to be written */
 	UINT btw,			/* Number of bytes to write */
 	UINT &bw			/* Pointer to number of bytes written */
@@ -84,7 +84,7 @@ FRESULT Storage::write(
 	FR_TRY(f_write(&SDFile, buff, btw, &bw));
 	FR_END_R
 }
-FRESULT Storage::read(
+FRESULT Storage::sd_read(
 	void* buff,	/* Pointer to data buffer */
 	UINT btr,	/* Number of bytes to read */
 	UINT &br	/* Pointer to number of bytes read */
@@ -94,7 +94,7 @@ FRESULT Storage::read(
 	FR_END_R
 }
 
-FRESULT Storage::getSDPath(String path) {
+FRESULT Storage::sd_getSDPath(String path) {
 	FR_BEGIN
 		path = SDPath;
 	FR_END

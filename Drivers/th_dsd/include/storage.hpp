@@ -74,13 +74,13 @@ public:
 
 	static void errorHandler(FRESULT r);
 
-	FRESULT mount(void),
-			unmount(void),
-			open(const TCHAR* path,	BYTE mode),
-			close(void),
-			write(const void* buff, UINT btw, UINT &bw),
-			read(void* buff, UINT btr, UINT &br),
-			getSDPath(String path);
+	FRESULT sd_mount(void),
+			sd_unmount(void),
+			sd_open(const TCHAR* path,	BYTE mode),
+			sd_close(void),
+			sd_write(const void* buff, UINT btw, UINT &bw),
+			sd_read(void* buff, UINT btr, UINT &br),
+			sd_getSDPath(String path);
 
 protected:
 private:

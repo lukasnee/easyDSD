@@ -31,10 +31,6 @@ extern "C" {
 
 //osThreadId defaultTaskHandle;
 
-
-openDSD dsd;
-
-
 void th_dsd_start(void) {
 //	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
 //	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
@@ -43,40 +39,38 @@ void th_dsd_start(void) {
 
 void openDSD::th_dsd_task(void const * argument)
 {
+FR_BEGIN
+	openDSD dsd;
 
 	Logger logger(&dsd, 0, 0, 128, 128);
-
-	//dsd.list("*.*");
-	dsd.scanFiles("/");
 
 	dsd.buttonsBegin();
 
 	char c;
-	char txt[500] = {0};
+	char txt[500] = "mega wow";
 	static uint16_t i = 0;
-/*
-	do{
-//		sprintf(txt, "This is line %d.\n", i);
-//		logger.log(txt);
+	UINT bw, br;
 
-		c = 32 + rand() % 96;
-		if(c == 127) c = '\n';
-		logger.log(c);
-
-		logger.draw();
-		tft.updateScreen();
-		//delay(100);
-		i++;
-	}while(i != 0);
-*/
 	while(true) {
 
 		dsd.buttonsUpdate();
+		FR_TRY(dsd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
 
+		//Write to the text file
+		FR_TRY(dsd.sd_write(txt, strlen(txt), bw));
+		FR_TRY(dsd.sd_close());
 
+		//Test read file
+		FR_TRY(dsd.sd_open("F7FILE5.TXT",  FA_READ));
+		FR_TRY(dsd.sd_read(txt, sizeof(txt), br));
+		FR_TRY(dsd.sd_close());
+
+		//dsd.list("*.*");
+		dsd.scanFiles("/");
 		//logger.draw();
 		dsd.updateScreen();
 	}
+FR_END
 }
 
 FRESULT openDSD::scanFiles (
@@ -120,37 +114,26 @@ FRESULT openDSD::scanFiles (
     return res;
 }
 
-void openDSD::list(const char * pattern) {
-
-FR_BEGIN
-	char fileStr[100];
-	DIR dp = { 0 };
-	FILINFO fno = { 0 };
-	uint16_t index = 0, i_cursor = 0, i_end;
-
-	FR_TRY(mount());
-	//FR_TRY(f_readdir(&dp,&fno));
-	FR_TRY(unmount());
-
-	//FR_TRY(f_findfirst(&dp, &fno, SDPath, pattern));
-
-//	setTextWrap(true);
-//	setBounds(_w, _h);
-//	setFont(&wucyFont8pt7b);
-//	setTextSize(1);
-//	setDrawColor(C_BLACK);
-//	fillRect(_x, _y, _w, _h);
-//	setCursor(_x, _y + getCharMaxHeight());
-
-	//FR_DO
-//		sprintf(fileStr, "%.*s %lu \n", 30, fno.fname, fno.fsize);
-//		setTextColor(index == i_cursor ? C_YELLOW : C_LIME);
-//		print(fileStr);
-//		index++;
-	//FR_WHILE(f_findnext(&dp, &fno));
-
-FR_END
-}
+//void openDSD::list(const char * pattern) {
+//
+//FR_BEGIN
+//	char fileStr[100];
+//	DIR dp = { 0 };
+//	FILINFO fno = { 0 };
+//	uint16_t index = 0, i_cursor = 0, i_end;
+//
+//	//FR_TRY(f_readdir(&dp,&fno));
+//	//FR_TRY(f_findfirst(&dp, &fno, SDPath, pattern));
+//
+//	//FR_DO
+////		sprintf(fileStr, "%.*s %lu \n", 30, fno.fname, fno.fsize);
+////		setTextColor(index == i_cursor ? C_YELLOW : C_LIME);
+////		print(fileStr);
+////		index++;
+//	//FR_WHILE(f_findnext(&dp, &fno));
+//
+//FR_END
+//}
 
 
 //dsd.buttonsUpdate();
@@ -225,6 +208,20 @@ void operator delete[](void *ptr) {
 //			logger.log(txt);
 //		}
 
+/*
+	do{
+//		sprintf(txt, "This is line %d.\n", i);
+//		logger.log(txt);
 
+		c = 32 + rand() % 96;
+		if(c == 127) c = '\n';
+		logger.log(c);
+
+		logger.draw();
+		tft.updateScreen();
+		//delay(100);
+		i++;
+	}while(i != 0);
+*/
 
 /* end of th_dsd.cpp */
