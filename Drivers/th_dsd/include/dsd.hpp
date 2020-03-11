@@ -57,14 +57,17 @@ typedef enum button_map_{
 
 BTN_COUNT} button_map;
 
-class openDSD :
-		public TFT_ILI9163C,
-		public Storage
-{
-	public:
-	openDSD() : TFT_ILI9163C(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) {
-		TFT_ILI9163C::begin();
-		Storage::sd_mount();
+class openDSD {
+
+public:
+
+	TFT_ILI9163C tft;
+	Storage sd;
+
+
+	openDSD() : tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) {
+		tft.begin();
+		sd.sd_mount();
 	}
 
 	FRESULT scanFiles(char* path);
@@ -101,6 +104,10 @@ class openDSD :
 	};
 
 	friend void th_dsd_start(void);
+
+
+
+	void printStylePipboy(void);
 
 };
 

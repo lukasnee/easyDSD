@@ -40,9 +40,9 @@ void th_dsd_start(void) {
 void openDSD::th_dsd_task(void const * argument)
 {
 FR_BEGIN
-	openDSD dsd;
 
-	Logger logger(&dsd, 0, 0, 128, 128);
+	openDSD dsd;
+	//Logger logger(&dsd, 0, 0, 128, 128);
 
 	dsd.buttonsBegin();
 
@@ -51,24 +51,30 @@ FR_BEGIN
 	static uint16_t i = 0;
 	UINT bw, br;
 
+	dsd.printStylePipboy();
+	dsd.tft.print("test is running...\n");
+
+	dsd.buttonsUpdate();
+	FR_TRY(dsd.sd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
+
+	//Write to the text file
+	FR_TRY(dsd.sd.sd_write(txt, strlen(txt), bw));
+	dsd.tft.print("wrote text to file\n");
+	FR_TRY(dsd.sd.sd_close());
+
+	//Test read file
+	FR_TRY(dsd.sd.sd_open("geras.txt",  FA_READ));
+	FR_TRY(dsd.sd.sd_read(txt, sizeof(txt), br));
+	dsd.tft.print("reading:\n");
+	dsd.tft.print(txt);
+	FR_TRY(dsd.sd.sd_close());
+	dsd.tft.updateScreen();
+	//dsd.list("*.*");
+	dsd.scanFiles("/");
+	//logger.draw();
+
+
 	while(true) {
-
-		dsd.buttonsUpdate();
-		FR_TRY(dsd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
-
-		//Write to the text file
-		FR_TRY(dsd.sd_write(txt, strlen(txt), bw));
-		FR_TRY(dsd.sd_close());
-
-		//Test read file
-		FR_TRY(dsd.sd_open("F7FILE5.TXT",  FA_READ));
-		FR_TRY(dsd.sd_read(txt, sizeof(txt), br));
-		FR_TRY(dsd.sd_close());
-
-		//dsd.list("*.*");
-		dsd.scanFiles("/");
-		//logger.draw();
-		dsd.updateScreen();
 	}
 FR_END
 }
@@ -83,14 +89,14 @@ FRESULT openDSD::scanFiles (
     static FILINFO fno;
     char strLine[50];
 
-	setTextWrap(true);
-	setBounds(_GRAMWIDTH, _GRAMHEIGH);
-	setFont(&wucyFont8pt7b);
-	setTextSize(1);
-	setDrawColor(C_BLACK);
-	fillRect(0, 0, _GRAMWIDTH, _GRAMHEIGH);
-	setCursor(0, 0 + getCharMaxHeight());
-	setTextColor(C_LIME);
+	tft.setTextWrap(true);
+	tft.setBounds(_GRAMWIDTH, _GRAMHEIGH);
+	tft.setFont(&wucyFont8pt7b);
+	tft.setTextSize(1);
+	tft.setDrawColor(C_BLACK);
+	tft.fillRect(0, 0, _GRAMWIDTH, _GRAMHEIGH);
+	tft.setCursor(0, 0 + tft.getCharMaxHeight());
+	tft.setTextColor(C_LIME);
 
     res = f_opendir(&dir, path);                       /* Open the directory */
     if (res == FR_OK) {
@@ -105,13 +111,26 @@ FRESULT openDSD::scanFiles (
                 path[i] = 0;
             } else {                                       /* It is a file. */
                 sprintf(strLine, "%s/%s\n", path, fno.fname);
-                print(strLine);
+                tft.print(strLine);
             }
         }
         f_closedir(&dir);
     }
 
     return res;
+}
+
+/* @brief print style (default) good for logging...
+ *
+ * */
+void openDSD::printStylePipboy(void) {
+
+	tft.setFont(&wucyFont8pt7b);
+	tft.setTextSize(1);
+	tft.setTextColor(C_LIME);
+	tft.setTextWrap(true);
+	tft.setBounds(tft.width(), tft.height());
+	tft.setCursor(0, tft.getCharMaxHeight());
 }
 
 //void openDSD::list(const char * pattern) {
