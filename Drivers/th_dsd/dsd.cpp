@@ -47,7 +47,7 @@ FR_BEGIN
 	dsd.buttonsBegin();
 
 	char c;
-	char txt[500] = "mega wow";
+	uint8_t data_block[4096] = "mega wow";
 	static uint16_t i = 0;
 	UINT bw, br;
 
@@ -55,18 +55,22 @@ FR_BEGIN
 	dsd.tft.print("test is running...\n");
 
 	dsd.buttonsUpdate();
-	FR_TRY(dsd.sd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
+	//FR_TRY(dsd.sd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
 
 	//Write to the text file
-	FR_TRY(dsd.sd.sd_write(txt, strlen(txt), bw));
-	dsd.tft.print("wrote text to file\n");
-	FR_TRY(dsd.sd.sd_close());
+	//FR_TRY(dsd.sd.sd_write(txt, strlen(data_block), bw));
+	//dsd.tft.print("wrote text to file\n");
+	//FR_TRY(dsd.sd.sd_close());
 
 	//Test read file
-	FR_TRY(dsd.sd.sd_open("geras.txt",  FA_READ));
-	FR_TRY(dsd.sd.sd_read(txt, sizeof(txt), br));
-	dsd.tft.print("reading:\n");
-	dsd.tft.print(txt);
+	FR_TRY(dsd.sd.sd_open("2L-125_stereo-2822k-1b_04.dsf",  FA_READ));
+	FR_TRY(dsd.sd.sd_read(data_block, sizeof(data_block), br));
+	dsf_readHeader(data_block, sizeof(data_block));
+
+
+
+//	dsd.tft.print("reading:\n");
+//	dsd.tft.print(txt);
 	FR_TRY(dsd.sd.sd_close());
 	dsd.tft.updateScreen();
 	//dsd.list("*.*");

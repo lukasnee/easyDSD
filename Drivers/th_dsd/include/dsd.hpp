@@ -46,6 +46,7 @@ extern "C" {
 #include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
 #include <log.hpp>
 #include "storage.hpp"
+#include "dsf.hpp"
 
 extern const GFXfont wucyFont8pt7b;
 
