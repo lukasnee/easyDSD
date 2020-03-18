@@ -22,9 +22,14 @@
 
 #include <cstdio>
 
-const uint8_t dsd_chunk_header[] = "DSD ";
-const uint32_t sizeOfDsdChunk = 8;
-const uint8_t fmt_chunk_header[] = "fmt ";
+const uint8_t chunk_header_dsd[] = {'D', 'S', 'D', ' '};
+const uint8_t chunk_header_fmt[] = {'f', 'm', 't', ' '};
+const uint8_t chunk_header_data[] = {'d', 'a', 't', 'a'};
+
+#define DSF_DSD_CHUNK_SIZE 28
+#define DSF_FMT_CHUNK_SIZE 52
+#define DSF_FMT_FORMAT_VERSION_1 1
+#define DSF_FMT_FORMAT_ID_RAW 0
 
 typedef uint32_t ch_type_t;
 
@@ -40,6 +45,7 @@ typedef enum channel_type{
 
 
 typedef uint32_t ch_num_t;
+typedef uint64_t dsf_ptr_t;
 
 typedef enum channel_num{
 	CHNUM_MONO = 1,
@@ -50,19 +56,15 @@ typedef enum channel_num{
 	CHNUM_6
 }ch_num_e;
 
-typedef struct dsd_chunk{
+typedef struct dsf{
 
-	uint8_t header[4]; // must equate to 'D', 'S', 'D', ' ' (includes 1 space).
-	uint64_t sizeOfThisChunk; // usually 28 bytes.
+/* dsd header data */
+
 	uint64_t totalFileSize; // Total file size.
-	uint8_t* pMetadata; // Pointer to Metadata chunk.
+	dsf_ptr_t pMetadata; // Pointer to Metadata chunk.
 
-}dsd_chunk_t;
+/* fmt header data */
 
-typedef struct fmt_chunk{
-
-	uint8_t header[4]; // must equate to 'f', 'm', 't', ' ' (includes 1 space).
-	uint64_t sizeOfThisChunk; // usually 52 bytes.
 	uint32_t formatVersion; // Version of this file format. Should be 1.
 	uint32_t formatId; // 0 : DSD raw.
 
@@ -93,16 +95,10 @@ typedef struct fmt_chunk{
 	/* Block size per channel is fixed, so please fill ZERO(0x00)
 	 * for unused sample data area in the block. */
 
-	uint8_t reserved; // usually filled with zeros.
+/* data header data */
 
-}fmt_chunk_t;
-
-typedef struct data_chunk{
-
-	uint8_t header[4]; // must equate to 'd', 'a', 't', 'a'.
-	uint64_t sizeOfThisChunk; // Equal to n(see next line) + 12.
-
-	uint8_t* sampleData; // Data is set as LSB(Least Significant Bit) first.
+	uint64_t sampleDataSize; // Equal to n(see next line) + 12.
+	dsf_ptr_t pSampleData; // Data is set as LSB(Least Significant Bit) first.
 /*	For example, if dsd stream data is 0x00, 0x01, 0x02, 0x03, 0x04….., then this is the sample data in data
 	chunk.
 	If “Bits per sample” is equal to 1, then store the data as LSB(Least Significant Bit) first.
@@ -113,23 +109,8 @@ typedef struct data_chunk{
 	(00000000, 00000001, 00000010, 00000011, 00000100, ….)
 */
 
-}data_chunk_t;
-
-typedef struct metadata_chunk{
-
-	uint8_t* metaData; // ID3v2
-
-}metadata_chunk_t;
-
-typedef struct dsf{
-
-	dsd_chunk_t 		dsd;
-	fmt_chunk_t 		fmt;
-	data_chunk_t 		data;
-	metadata_chunk_t 	metadata;
-
 }dsf_t;
 
-void dsf_readHeader(const uint8_t* header, uint32_t size);
+int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf);
 
 #endif /* TH_DSD_INCLUDE_DSF_HPP_ */

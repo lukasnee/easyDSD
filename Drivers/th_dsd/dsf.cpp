@@ -18,15 +18,92 @@
 */
 
 #include <dsf.hpp>
-
 #include <cstring>
 
-void dsf_readHeader(const uint8_t* header, uint32_t size) {
+#define PARSE_START(p_head) { \
+	uint8_t* pHead = (uint8_t*)p_head; \
+	uint8_t* pMem = pHead
 
-	dsf_t dsf;
+#define PARSE_P_HEAD pHead
+#define PARSE_P_MEM pMem
+#define PARSE_POSITION static_cast<dsf_ptr_t>(reinterpret_cast<int>(pMem - pHead))
 
-	// copy dsd and fmt chunks
-	memcpy(&dsf, (const uint8_t*)header, sizeof(dsd_chunk_t) + sizeof(fmt_chunk_t));
-	// copy data chunk without actual sample data
-	memcpy(&dsf.data, (const uint8_t*)header + sizeof(dsd_chunk_t) + sizeof(fmt_chunk_t), 12);
-}
+/* little endian */
+#define PARSE_READ(dst, type) dst = *(type*)pMem; pMem+=sizeof(type)
+#define PARSE_READ_BUFF(pDestination, length) \
+	memcpy(pDestination, pMem, length); pMem+=length
+
+#define PARSE_END(bytesRead) bytesRead = PARSE_POSITION;}
+
+#define VALIDATE(expected, type) \
+	if(*(type*)pMem != expected) return -1;
+
+#define VALIDATE_PASS(expected, type) \
+	VALIDATE(expected, type) \
+	pMem+=sizeof(type)
+
+#define VALIDATE_BETWEEN(value, from, to) \
+	if(value < from || value > to) return -1;
+
+#define HEADER_SIZE 4U
+#define HEADER_EQUAL(actual, expected) 	\
+		(memcmp(actual, expected, HEADER_SIZE) == 0 ? 1 : 0)
+#define PARSE_PASS(type) pMem+=sizeof(type)
+
+int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf) {
+
+	uint8_t header_tmp[HEADER_SIZE];
+	dsf_t dsf = { 0 };
+	dsf_ptr_t bytesRead = 0;
+
+	PARSE_START(dsfBinaryBuff);
+
+	/* read dsd chunk */
+
+	PARSE_READ_BUFF(header_tmp, HEADER_SIZE);
+	if(!HEADER_EQUAL(header_tmp, chunk_header_dsd)) return -1;
+
+	VALIDATE_PASS(DSF_DSD_CHUNK_SIZE, uint64_t);
+
+	PARSE_READ(dsf.totalFileSize, uint64_t);
+	PARSE_READ(dsf.pMetadata, dsf_ptr_t);
+
+	/* read fmt header */
+
+	PARSE_READ_BUFF(header_tmp, HEADER_SIZE);
+	if(!HEADER_EQUAL(header_tmp, chunk_header_fmt)) return -1;
+
+	VALIDATE_PASS(DSF_FMT_CHUNK_SIZE, uint64_t); // why check const ? because stupid standard
+
+	VALIDATE(DSF_FMT_FORMAT_VERSION_1, uint32_t); // version 1 whatever that means
+	PARSE_READ(dsf.formatVersion, uint32_t);
+
+	VALIDATE(DSF_FMT_FORMAT_ID_RAW, uint32_t); // raw - the one and only, lol
+	PARSE_READ(dsf.formatId, uint32_t);
+
+	PARSE_READ(dsf.channelType, ch_type_t);
+	VALIDATE_BETWEEN(dsf.channelType, CHT_MONO, CHT_5_1_CHANNELS);
+
+	PARSE_READ(dsf.channelNum, ch_num_t);
+	VALIDATE_BETWEEN(dsf.channelNum, CHNUM_MONO, CHNUM_6);
+
+	PARSE_READ(dsf.samplingFreq, uint32_t);
+	PARSE_READ(dsf.bitsPerSample, uint32_t);
+	PARSE_READ(dsf.sampleCount, uint64_t);
+	PARSE_READ(dsf.blockSizePerChannel, uint32_t);
+	PARSE_PASS(uint32_t); // skip reserved
+
+	/* read data header */
+
+	PARSE_READ_BUFF(header_tmp, HEADER_SIZE);
+	if(!HEADER_EQUAL(header_tmp, chunk_header_data)) return -1;
+
+	PARSE_READ(dsf.sampleDataSize, uint64_t);
+	dsf.pSampleData = PARSE_POSITION;
+
+	PARSE_END(bytesRead);
+
+	*pDsf = dsf;
+	return 1;
+
+	}

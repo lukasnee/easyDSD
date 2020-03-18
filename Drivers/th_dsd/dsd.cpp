@@ -65,7 +65,10 @@ FR_BEGIN
 	//Test read file
 	FR_TRY(dsd.sd.sd_open("2L-125_stereo-2822k-1b_04.dsf",  FA_READ));
 	FR_TRY(dsd.sd.sd_read(data_block, sizeof(data_block), br));
-	dsf_readHeader(data_block, sizeof(data_block));
+
+	dsf_t dsf;
+
+	dsf_readHeader(data_block, &dsf);
 
 
 
