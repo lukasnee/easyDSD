@@ -69,21 +69,29 @@ class Storage {
 
 public:
 
-	Storage(void)  {};
+	Storage(void) : seekPos(0) {};
 	~Storage(void) {};
 
 	static void errorHandler(FRESULT r);
 
-	FRESULT sd_mount(void),
-			sd_unmount(void),
-			sd_open(const TCHAR* path,	BYTE mode),
-			sd_close(void),
-			sd_write(const void* buff, UINT btw, UINT &bw),
-			sd_read(void* buff, UINT btr, UINT &br),
-			sd_getSDPath(String path);
+	FRESULT mount(void),
+			unmount(void),
+			open(const TCHAR* path,	BYTE mode),
+			close(void),
+			write(const void* buff, UINT btw, UINT &bw),
+			read(void* buff, UINT btr, UINT &br),
+			lseek(FSIZE_t offset),
+			getSDPath(String path);
+
+	uint32_t getSeekPos(void) { return seekPos; };
+	void setSeekPos(uint32_t position) { seekPos = position; };
+	void advanceSeekPosBy(int32_t step) { seekPos += step; }
+
 
 protected:
 private:
+
+	uint32_t seekPos;
 
 };
 

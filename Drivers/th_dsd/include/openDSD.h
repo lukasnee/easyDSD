@@ -24,6 +24,18 @@
 extern "C" {
 #endif
 
+extern void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
+
+
+extern uint8_t dsd_PingPongState;
+
+#define DSD_PING_PONG 2
+#define DSD_PING_PONG_BUFF_SIZE 4096
+#define DSD_PING_READ_PONG_STREAM dsd_PingPongState == 1
+#define DSD_PING_STREAM_PONG_READ dsd_PingPongState == 0
+#define DSD_PING_PONG_FLIP() dsd_PingPongState = dsd_PingPongState ? 0 : 1
+#define DSD_PING 0
+#define DSD_PONG 1
 
 
 void th_dsd_start(void); /* start openDSD externally from c source */

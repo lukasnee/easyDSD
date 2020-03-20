@@ -50,6 +50,9 @@ extern "C" {
 
 extern const GFXfont wucyFont8pt7b;
 
+
+
+
 typedef enum button_map_{
 
 	BTN_UP,
@@ -65,10 +68,9 @@ public:
 	TFT_ILI9163C tft;
 	Storage sd;
 
-
 	openDSD() : tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) {
 		tft.begin();
-		sd.sd_mount();
+		sd.mount();
 	}
 
 	FRESULT scanFiles(char* path);
@@ -105,7 +107,6 @@ public:
 	};
 
 	friend void th_dsd_start(void);
-
 
 
 	void printStylePipboy(void);

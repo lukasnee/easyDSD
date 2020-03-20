@@ -55,27 +55,27 @@ void Storage::errorHandler(FRESULT r) {
 	};
 }
 
-FRESULT Storage::sd_mount(void) {
+FRESULT Storage::mount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0));
 	FR_END_R
 }
-FRESULT Storage::sd_unmount(void) {
+FRESULT Storage::unmount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)NULL, 0));
 	FR_END_R
 }
-FRESULT Storage::sd_open(const TCHAR* path, BYTE mode) {
+FRESULT Storage::open(const TCHAR* path, BYTE mode) {
 	FR_BEGIN
 	FR_TRY(f_open(&SDFile, path, mode));
 	FR_END_R
 }
-FRESULT Storage::sd_close(void) {
+FRESULT Storage::close(void) {
 	FR_BEGIN
 	FR_TRY(f_close(&SDFile));
 	FR_END_R
 }
-FRESULT Storage::sd_write(
+FRESULT Storage::write(
 	const void* buff,	/* Pointer to the data to be written */
 	UINT btw,			/* Number of bytes to write */
 	UINT &bw			/* Pointer to number of bytes written */
@@ -84,17 +84,28 @@ FRESULT Storage::sd_write(
 	FR_TRY(f_write(&SDFile, buff, btw, &bw));
 	FR_END_R
 }
-FRESULT Storage::sd_read(
+FRESULT Storage::read(
 	void* buff,	/* Pointer to data buffer */
 	UINT btr,	/* Number of bytes to read */
 	UINT &br	/* Pointer to number of bytes read */
 ) {
 	FR_BEGIN
 	FR_TRY(f_read(&SDFile, buff, btr, &br));
+	advanceSeekPosBy(btr);
 	FR_END_R
 }
 
-FRESULT Storage::sd_getSDPath(String path) {
+FRESULT Storage::lseek(FSIZE_t offset) {
+	FR_BEGIN
+	advanceSeekPosBy(offset);
+	FR_TRY(f_lseek(&SDFile, getSeekPos()));
+	FR_END_R
+}
+
+
+
+
+FRESULT Storage::getSDPath(String path) {
 	FR_BEGIN
 		path = SDPath;
 	FR_END

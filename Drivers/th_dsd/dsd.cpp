@@ -29,6 +29,10 @@ extern "C" {
 }
 #endif
 
+
+uint8_t dsd_PingPongState = 0;
+uint8_t data_block[2][DSD_PING_PONG][DSD_PING_PONG_BUFF_SIZE] = { 0 };
+
 //osThreadId defaultTaskHandle;
 
 void th_dsd_start(void) {
@@ -39,96 +43,70 @@ void th_dsd_start(void) {
 
 void openDSD::th_dsd_task(void const * argument)
 {
-FR_BEGIN
 
-	openDSD dsd;
-	//Logger logger(&dsd, 0, 0, 128, 128);
-
-	dsd.buttonsBegin();
-
-	char c;
-	uint8_t data_block[4096] = "mega wow";
 	static uint16_t i = 0;
 	UINT bw, br;
-
-	dsd.printStylePipboy();
-	dsd.tft.print("test is running...\n");
-
-	dsd.buttonsUpdate();
-	//FR_TRY(dsd.sd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
-
-	//Write to the text file
-	//FR_TRY(dsd.sd.sd_write(txt, strlen(data_block), bw));
-	//dsd.tft.print("wrote text to file\n");
-	//FR_TRY(dsd.sd.sd_close());
-
-	//Test read file
-	FR_TRY(dsd.sd.sd_open("2L-125_stereo-2822k-1b_04.dsf",  FA_READ));
-	FR_TRY(dsd.sd.sd_read(data_block, sizeof(data_block), br));
-
+	openDSD dsd;
 	dsf_t dsf;
 
-	dsf_readHeader(data_block, &dsf);
+	dsd.buttonsBegin();
+	//Logger logger(&dsd, 0, 0, 128, 128);
 
-
-
-//	dsd.tft.print("reading:\n");
-//	dsd.tft.print(txt);
-	FR_TRY(dsd.sd.sd_close());
+	dsd.printStylePipboy();
+	dsd.tft.print("openDSD running...\n");
 	dsd.tft.updateScreen();
-	//dsd.list("*.*");
-	dsd.scanFiles("/");
-	//logger.draw();
 
+	// open .dsf file, read first block for header
+	dsd.sd.open(/*"2L-125_stereo-2822k-1b_04.dsf"*/"03 - Roxy Music - Avalon.dsf",  FA_READ);
+	dsd.sd.read(data_block[DSD_PING], sizeof(data_block[DSD_PING]), br);
 
-	while(true) {
+	// parse dsf header
+	dsf_readHeader(data_block[0][0], &dsf);
+
+	if(dsf.blockSizePerChannel > DSD_PING_PONG_BUFF_SIZE)
+		dsd.tft.print("block size too big\n");
+
+	// seek to start of sample data
+	dsd.sd.lseek(dsf.pSampleData);
+
+	// read sample block
+	while(dsd.sd.getSeekPos() < dsf.sampleDataSize) {
+
+		HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)data_block[0][DSD_PING], dsf.blockSizePerChannel/sizeof(uint16_t));
+		HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)data_block[1][DSD_PING], dsf.blockSizePerChannel/sizeof(uint16_t));
+		dsd.sd.read(data_block[0][DSD_PONG], dsf.blockSizePerChannel, br);
+		dsd.sd.read(data_block[1][DSD_PONG], dsf.blockSizePerChannel, br);
+		//dsd.sd.lseek(br);
+		while(DSD_PING_STREAM_PONG_READ) {
+			__NOP();
+		};
+
+		HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)data_block[0][DSD_PONG], dsf.blockSizePerChannel/sizeof(uint16_t));
+		HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)data_block[1][DSD_PING], dsf.blockSizePerChannel/sizeof(uint16_t));
+		dsd.sd.read(data_block[0][DSD_PING], dsf.blockSizePerChannel, br);
+		dsd.sd.read(data_block[1][DSD_PONG], dsf.blockSizePerChannel, br);
+		//dsd.sd.lseek(br);
+		while(DSD_PING_READ_PONG_STREAM) {
+			__NOP();
+		};
+		//dsd.sd.lseek(dsf.pSampleData);
+
 	}
-FR_END
+
+	dsd.sd.close();
+
 }
 
-FRESULT openDSD::scanFiles (
-    char* path        /* Start node to be scanned (***also used as work area***) */
-)
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    FRESULT res;
-    DIR dir;
-    UINT i;
-    static FILINFO fno;
-    char strLine[50];
+	if(hi2s == &hi2s2) {
 
-	tft.setTextWrap(true);
-	tft.setBounds(_GRAMWIDTH, _GRAMHEIGH);
-	tft.setFont(&wucyFont8pt7b);
-	tft.setTextSize(1);
-	tft.setDrawColor(C_BLACK);
-	tft.fillRect(0, 0, _GRAMWIDTH, _GRAMHEIGH);
-	tft.setCursor(0, 0 + tft.getCharMaxHeight());
-	tft.setTextColor(C_LIME);
+		DSD_PING_PONG_FLIP();
 
-    res = f_opendir(&dir, path);                       /* Open the directory */
-    if (res == FR_OK) {
-        for (;;) {
-            res = f_readdir(&dir, &fno);                   /* Read a directory item */
-            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
-            if (fno.fattrib & AM_DIR) {                    /* It is a directory */
-                i = strlen(path);
-                sprintf(&path[i], "/%s", fno.fname);
-                res = scanFiles(path);                    /* Enter the directory */
-                if (res != FR_OK) break;
-                path[i] = 0;
-            } else {                                       /* It is a file. */
-                sprintf(strLine, "%s/%s\n", path, fno.fname);
-                tft.print(strLine);
-            }
-        }
-        f_closedir(&dir);
-    }
-
-    return res;
+	}
 }
 
-/* @brief print style (default) good for logging...
- *
+/* @brief print style (default) good for logging.
  * */
 void openDSD::printStylePipboy(void) {
 
@@ -139,6 +117,67 @@ void openDSD::printStylePipboy(void) {
 	tft.setBounds(tft.width(), tft.height());
 	tft.setCursor(0, tft.getCharMaxHeight());
 }
+
+/*
+//	dsd.tft.print("reading:\n");
+//	dsd.tft.print(txt);
+
+
+	//dsd.list("*.*");
+	//dsd.scanFiles("/");
+	//logger.draw();
+
+
+
+//FRESULT openDSD::scanFiles (
+//    char* path        /* Start node to be scanned (***also used as work area***) */
+//)
+//{
+//    FRESULT res;
+//    DIR dir;
+//    UINT i;
+//    static FILINFO fno;
+//    char strLine[50];
+//
+//	tft.setTextWrap(true);
+//	tft.setBounds(_GRAMWIDTH, _GRAMHEIGH);
+//	tft.setFont(&wucyFont8pt7b);
+//	tft.setTextSize(1);
+//	tft.setDrawColor(C_BLACK);
+//	tft.fillRect(0, 0, _GRAMWIDTH, _GRAMHEIGH);
+//	tft.setCursor(0, 0 + tft.getCharMaxHeight());
+//	tft.setTextColor(C_LIME);
+//
+//    res = f_opendir(&dir, path);                       /* Open the directory */
+//    if (res == FR_OK) {
+//        for (;;) {
+//            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+//            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+//            if (fno.fattrib & AM_DIR) {                    /* It is a directory */
+//                i = strlen(path);
+//                sprintf(&path[i], "/%s", fno.fname);
+//                res = scanFiles(path);                    /* Enter the directory */
+//                if (res != FR_OK) break;
+//                path[i] = 0;
+//            } else {                                       /* It is a file. */
+//                sprintf(strLine, "%s/%s\n", path, fno.fname);
+//                tft.print(strLine);
+//            }
+//        }
+//        f_closedir(&dir);
+//    }
+//
+//    return res;
+//}
+
+
+
+//FR_TRY(dsd.sd.sd_open("F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE));
+//Write to the text file
+//FR_TRY(dsd.sd.sd_write(txt, strlen(data_block), bw));
+//dsd.tft.print("wrote text to file\n");
+//FR_TRY(dsd.sd.sd_close());
+
 
 //void openDSD::list(const char * pattern) {
 //
