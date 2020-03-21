@@ -68,7 +68,7 @@ typedef struct dsf{
 	uint32_t formatVersion; // Version of this file format. Should be 1.
 	uint32_t formatId; // 0 : DSD raw.
 
-	ch_type_t channelType; // ch_type_e
+	ch_type_e channelType; // ch_type_e
 	/* 	2-CHANNELS STEREO
 			1 : Front Left 2 : Front Right
 		3-CHANNELS
@@ -83,7 +83,7 @@ typedef struct dsf{
 			1 : Front Left 2 : Front Right 3 : Center 4 : Low Frequency 5 : Back Left 6 : Back Right
 	*/
 
-	ch_num_t channelNum; // ch_num_e
+	ch_num_e channelNum; // ch_num_e
 	uint32_t samplingFreq; // Sampling frequency in Hertz, ex.: 2822400, 5644800.
 	uint32_t bitsPerSample; // in bits, ex.: 1, 8.
 

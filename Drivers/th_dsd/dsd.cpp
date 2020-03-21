@@ -31,23 +31,22 @@ extern "C" {
 
 
 uint8_t dsd_PingPongState = 0;
-uint8_t data_block[2][DSD_PING_PONG][DSD_PING_PONG_BUFF_SIZE] = { 0 };
+uint8_t data_block[2][DSD_PING_PONG][DSD_PING_BUF_SIZE] = { 0 };
+easyDSD dsd = { 0 };
+dsf_t dsf = { 0 };
 
 //osThreadId defaultTaskHandle;
-
 void th_dsd_start(void) {
 //	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
 //	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
-	openDSD::th_dsd_task(NULL);
+	easyDSD::th_dsd_task(NULL);
 }
 
-void openDSD::th_dsd_task(void const * argument)
+void easyDSD::th_dsd_task(void const * argument)
 {
 
 	static uint16_t i = 0;
 	UINT bw, br;
-	openDSD dsd;
-	dsf_t dsf;
 
 	dsd.buttonsBegin();
 	//Logger logger(&dsd, 0, 0, 128, 128);
@@ -69,11 +68,13 @@ void openDSD::th_dsd_task(void const * argument)
 	// seek to start of sample data
 	dsd.sd.lseek(dsf.pSampleData);
 
+	HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)data_block[0], DSD_PINGPONG_BUF_SIZE/sizeof(uint16_t));
+	HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)data_block[1], DSD_PINGPONG_BUF_SIZE/sizeof(uint16_t));
+
 	// read sample block
 	while(dsd.sd.getSeekPos() < dsf.sampleDataSize) {
 
-		HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)data_block[0][DSD_PING], dsf.blockSizePerChannel/sizeof(uint16_t));
-		HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)data_block[1][DSD_PING], dsf.blockSizePerChannel/sizeof(uint16_t));
+
 		dsd.sd.read(data_block[0][DSD_PONG], dsf.blockSizePerChannel, br);
 		dsd.sd.read(data_block[1][DSD_PONG], dsf.blockSizePerChannel, br);
 		//dsd.sd.lseek(br);
@@ -96,19 +97,27 @@ void openDSD::th_dsd_task(void const * argument)
 	dsd.sd.close();
 
 }
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+	if(hi2s == &hi2s2) {
+		DSD_PING_READ_PONG_STREAM();
+	}
+}
+
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
 	if(hi2s == &hi2s2) {
 
-		DSD_PING_PONG_FLIP();
+		DSD_PING_STREAM_PONG_READ();
 
 	}
 }
 
+
 /* @brief print style (default) good for logging.
  * */
-void openDSD::printStylePipboy(void) {
+void easyDSD::printStylePipboy(void) {
 
 	tft.setFont(&wucyFont8pt7b);
 	tft.setTextSize(1);
