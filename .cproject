@@ -120,7 +120,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry excluding="libid3|libdstdec|th_dsd/sound.c|libsacd|Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|id3lib-3.8.3|th_dsd/tjpgd.c|th_dsd/xprintf.c|Adafruit-GFX-Library/fontconvert|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry excluding="easyDSD/sound.c|libid3|libdstdec|th_dsd/sound.c|libsacd|Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|id3lib-3.8.3|th_dsd/tjpgd.c|th_dsd/xprintf.c|Adafruit-GFX-Library/fontconvert|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 					</sourceEntries>
@@ -234,7 +234,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry excluding="libid3|libdstdec|th_dsd/sound.c|libsacd|Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|id3lib-3.8.3|th_dsd/tjpgd.c|th_dsd/xprintf.c|Adafruit-GFX-Library/fontconvert|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry excluding="easyDSD/sound.c|libid3|libdstdec|th_dsd/sound.c|libsacd|Adafruit-GFX-Library/Adafruit_SPITFT.cpp|Adafruit-GFX-Library/examples|id3lib-3.8.3|th_dsd/tjpgd.c|th_dsd/xprintf.c|Adafruit-GFX-Library/fontconvert|TFT_ILI9163C/examples" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 					</sourceEntries>

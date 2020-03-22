@@ -66,8 +66,7 @@ private:
 		sd(),
 		player(),
 		keyboard(),
-		tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET),
-		_instance(NULL)
+		tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET)
 	{
 
 	};
