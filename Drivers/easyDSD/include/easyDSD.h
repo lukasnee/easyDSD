@@ -40,9 +40,6 @@ extern "C" {
  * */
 #define EDSD_MAX_BUF_SIZE 4096
 
-extern void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
-extern void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
-
 /* USER CONFIGURATIONS END */
 
 

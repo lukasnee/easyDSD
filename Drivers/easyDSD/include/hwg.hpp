@@ -45,12 +45,19 @@ typedef bool boolean;
 
 extern I2S_HandleTypeDef hi2s2;
 extern I2S_HandleTypeDef hi2s3;
+extern void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
+extern void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
+
+
 extern DMA_HandleTypeDef hdma_spi2_tx;
 extern DMA_HandleTypeDef hdma_spi3_tx;
 extern RTC_HandleTypeDef hrtc;
 extern SD_HandleTypeDef hsd;
 extern SPI_HandleTypeDef hspi1;
 extern DMA_HandleTypeDef hdma_spi1_tx;
+
+
+
 
 //typedef std::string String;
 typedef char const * String;
@@ -87,7 +94,6 @@ public:
 };
 
 /* SPI workaround */
-
 
 typedef enum dc_mode_{
 	DC_DATA, DC_COMMAND

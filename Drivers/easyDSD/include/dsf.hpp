@@ -111,6 +111,6 @@ typedef struct dsf{
 
 }dsf_t;
 
-int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf);
+int8_t dsf_readHeader(uint8_t const * dsfBinaryBuff, dsf_t & pDsf);
 
 #endif /* EASYDSD_INCLUDE_DSF_HPP_ */

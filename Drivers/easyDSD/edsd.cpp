@@ -17,7 +17,6 @@
 
 #include "edsd.hpp"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,7 +42,8 @@ void easyDSD::easy_dsd_start_task(void const * argument) {
 void easyDSD::task_easy_dsd(void)
 {
 
-	UINT bw, br;
+	task_easy_dsd();
+
 /*
 	static uint16_t i = 0;
 	dsd.buttonsBegin();
@@ -55,74 +55,6 @@ void easyDSD::task_easy_dsd(void)
 
 	while(true) {
 
-		switch(player.getState()) {
-
-		case P_STOPPED:
-
-			break;
-
-		case P_STARTING_TO_PLAY:
-
-			// open .dsf file, read first block for header
-			sd.open("03 - Roxy Music - Avalon.dsf",  FA_READ); /*"2L-125_stereo-2822k-1b_04.dsf"*/
-			sd.read(, sizeof(data_block[EDSD_CHANNEL_LEFT]), br);
-
-			// parse dsf header
-			dsf_readHeader(data_block[EDSD_CHANNEL_LEFT][], &dsf);
-
-			if(player.dsf.blockSizePerChannel > EDSD_MAX_BUF_SIZE)
-				tft.print("block size too big\n");
-
-			// seek to start of sample data
-			sd.lseek(player.dsf.pSampleData);
-
-			HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)data_block[0], DSD_PINGPONG_BUF_SIZE/sizeof(uint16_t));
-			HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)data_block[1], DSD_PINGPONG_BUF_SIZE/sizeof(uint16_t));
-
-
-
-			_trackIsActive = true;
-			break;
-
-		case P_PLAYING:
-			// read sample block
-			while(sd.getSeekPos() < dsf.sampleDataSize) {
-
-				sd.read(data_block[0][DSD_PONG], dsf.blockSizePerChannel, br);
-				sd.read(data_block[1][DSD_PONG], dsf.blockSizePerChannel, br);
-				while(DSD_PING_STREAM_PONG_READ) {
-					__NOP();
-				};
-
-				sd.read(data_block[0][DSD_PING], dsf.blockSizePerChannel, br);
-				sd.read(data_block[1][DSD_PONG], dsf.blockSizePerChannel, br);
-				while(DSD_PING_READ_PONG_STREAM) {
-					__NOP();
-				};
-			}
-
-			break;
-
-		case P_PAUSING:
-
-			break;
-
-		case P_PAUSED:
-
-			break;
-
-		case P_RESUMING:
-
-			break;
-
-		case P_STOPPING:
-			sd.close();
-			/* todo close file, stop DMA */
-			_trackIsActive = false;
-
-			break;
-
-		}
 	}
 }
 
@@ -152,10 +84,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 	//dsd.list("*.*");
 	//dsd.scanFiles("/");
 	//logger.draw();
-
-
-
-
 
 
 

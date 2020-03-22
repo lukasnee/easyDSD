@@ -49,29 +49,19 @@ extern "C" {
 //#include <tag.h>			/* library for ID3v2 decoding from .dsf file */
 //#include "sound.h"
 
-class easyDSD {
+class easyDSD : public Player, private virtual SD {
 
 public:
 
-	Storage 		sd;
-	Player 			player;
-	Keyboard 		keyboard;
-	TFT_ILI9163C 	tft;
-
-	static void easy_dsd_start_task(void const * argument); /* start easyDSD player */
+	//start easyDSD player with:
+	static void easy_dsd_start_task(void const * argument);
 
 private:
 
-	easyDSD() :
-		sd(),
-		player(),
-		keyboard(),
-		tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET)
-	{
+	Keyboard 		kb;
+	TFT_ILI9163C 	tft;
 
-	};
-
-	~easyDSD() {  };
+	easyDSD() : kb(), tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) { };
 
 	void task_easy_dsd(void);
 

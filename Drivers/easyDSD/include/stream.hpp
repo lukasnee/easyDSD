@@ -56,15 +56,17 @@ typedef enum pingpong_{
 	PP_PONG,
 }pingpong_e;
 
-typedef uint8_t pp_buff_ar[EDSD_MAX_BUF_SIZE];
-typedef uint8_t ping_pong_2ar[EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
-typedef uint8_t stream_buffer_3ar[EDSD_MAX_CHANNELS][EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
+typedef uint8_t buff_block_ar[EDSD_MAX_BUF_SIZE];
+typedef uint8_t buff_ping_pong_2ar[EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
+typedef uint8_t buff_stream_3ar[EDSD_MAX_CHANNELS][EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
 
 class Stream {
 
 	public:
 
 		Stream(void) : _state(PP_STANDBY), _statePrev(PP_STANDBY), _arStreamBuffer{ 0xAA } {};
+
+		void routine(void);
 
 		ping_pong_e getState(void) { return _state; };
 		void setState(ping_pong_e state) { _state = state; };
@@ -83,15 +85,23 @@ class Stream {
 		bool pingIsReadingPongIsStreaming(void) { return _state == PP_PI_READ_PO_STREAM; };
 		bool isStopping(void) { return ((_state == PP_PI_HALT_PO_STREAM) || (_state == PP_PI_STREAM_PO_HALT)); };
 
+	/* Main _arStreamBuffer segmented interface with
+	 * Read/Write or Read-Only access and boundary protection */
 
-		stream_buffer_3ar* getStreamBuffer_ar3(void) {
-			return reinterpret_cast<stream_buffer_3ar*>(_arStreamBuffer); };
+		/* full buffer access */
+		buff_stream_3ar* bufferRW(void) {
+			return reinterpret_cast<buff_stream_3ar*>(_arStreamBuffer); };
+		buff_stream_3ar const * bufferR(void) { return bufferRW(); }
 
-		ping_pong_2ar* getPingPongBuffer_ar2(channel_e ch) {
-			return ((ch < EDSD_MAX_CHANNELS) ? reinterpret_cast<ping_pong_2ar*>(_arStreamBuffer[ch]) : NULL); };
+		/* PingPong access */
+		buff_ping_pong_2ar* bufferChannelRW(channel_e ch) {
+			return ((ch < EDSD_MAX_CHANNELS) ? reinterpret_cast<buff_ping_pong_2ar*>(_arStreamBuffer[ch]) : NULL); };
+		buff_ping_pong_2ar const * bufferPingPongR(channel_e ch) { return bufferChannelRW(ch); }
 
-		pp_buff_ar* getBuffer_ar(channel_e ch, pingpong_e pp) {
-			return ((pp < 2) ? reinterpret_cast<pp_buff_ar*>(getPingPongBuffer_ar2(ch)[pp]) : NULL);};
+		/* individual block access */
+		buff_block_ar* bufferBlockRW(channel_e ch, pingpong_e pp) {
+			return ((pp < 2) ? reinterpret_cast<buff_block_ar*>(bufferChannelRW(ch)[pp]) : NULL);};
+		buff_block_ar const * bufferBlockR(channel_e ch, pingpong_e pp) { return bufferBlockRW(ch, pp); }
 
 		void alertPingBuffFinishedStreaming(void) { _state = PP_PI_READ_PO_STREAM; };
 		void alertPongBuffFinishedStreaming(void) { _state = PP_PI_STREAM_PO_READ; };
@@ -101,7 +111,7 @@ class Stream {
 		ping_pong_e _statePrev;
 
 		/* THIS TAKES A LOT OF RAM, 16kB default, memory field must be DMA enabled */
-		stream_buffer_3ar _arStreamBuffer;
+		buff_stream_3ar _arStreamBuffer;
 	};
 
 #endif /* EASYDSD_INCLUDE_STREAM_HPP_ */

@@ -1,6 +1,5 @@
 /*
 	SD card FAT32 storage wrapper for openDSD.
-	Glue code for your specific hardware (initially designed for STM32F407VE).
 
 	License: GPL 3.0
 	Copyright (C) 2020 Lukas Neverauskis
@@ -17,6 +16,12 @@
 */
 
 #include "storage.hpp"
+#include "fatfs.h"	/* FAT32 file system */
+
+extern uint8_t retSD;    /* Return value for SD */
+extern char SDPath[4];   /* SD logical drive path */
+extern FATFS SDFatFS;    /* File system object for SD logical drive */
+extern FIL SDFile;       /* File object for SD */
 
 #include "string.h"
 
@@ -30,7 +35,15 @@ extern "C" {
 }
 #endif
 
-void Storage::errorHandler(FRESULT r) {
+#define FR_BEGIN FRESULT res = FR_OK;
+#define FR_TRY(function) res = function; if (res != FR_OK ) errorHandler(res)
+#define FR_END fr_end:;
+#define FR_END_R fr_end:; /* ... */ return static_cast<SD_RESULT>(res);
+
+#define FR_DO do {
+#define FR_WHILE(function) res = function; } while(res == FR_OK)
+
+void errorHandler(FRESULT r) {
 
 	const char* errorMsg[] {
 		"FR_OK",					/* (0) Succeeded */
@@ -54,66 +67,77 @@ void Storage::errorHandler(FRESULT r) {
 		"FR_TOO_MANY_OPEN_FILES",	/* (18) Number of open files > _FS_LOCK */
 		"FR_INVALID_PARAMETER"
 	};
+
+	/* todo handle somehow */
+
 }
 
-FRESULT Storage::mount(void) {
+SD_RESULT SD::mount(void) {
 	FR_BEGIN
-	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0));
+	FR_TRY(f_mount(&SDFatFS, static_cast<TCHAR const*>(SDPath), 0));
 	FR_END_R
 }
-FRESULT Storage::unmount(void) {
+SD_RESULT SD::unmount(void) {
 	FR_BEGIN
-	FR_TRY(f_mount(&SDFatFS, (TCHAR const*)NULL, 0));
+	FR_TRY(f_mount(&SDFatFS, static_cast<TCHAR const*>(NULL), 0));
 	FR_END_R
 }
-FRESULT Storage::open(const TCHAR* path, BYTE mode) {
+SD_RESULT SD::open(
+	const char * path,
+	SD_MODE mode
+)
+{
 	FR_BEGIN
 	FR_TRY(f_open(&SDFile, path, mode));
 	FR_END_R
 }
-FRESULT Storage::close(void) {
+SD_RESULT SD::close(void) {
 	FR_BEGIN
 	FR_TRY(f_close(&SDFile));
 	FR_END_R
 }
-FRESULT Storage::write(
-	const void* buff,	/* Pointer to the data to be written */
-	UINT btw,			/* Number of bytes to write */
-	UINT &bw			/* Pointer to number of bytes written */
-) {
+SD_RESULT SD::write(
+	const void* buff,		/* Pointer to the data to be written */
+	unsigned int bytesToWrite	/* Number of bytes to write */
+)
+{
 	FR_BEGIN
-	FR_TRY(f_write(&SDFile, buff, btw, &bw));
+	FR_TRY(f_write(&SDFile, buff, bytesToWrite, &_bytesWritten));
+	advanceSeekPosBy(_bytesWritten);
 	FR_END_R
 }
-FRESULT Storage::read(
-	void* buff,	/* Pointer to data buffer */
-	UINT btr,	/* Number of bytes to read */
-	UINT &br	/* Pointer to number of bytes read */
-) {
+SD_RESULT SD::read(
+	void* buff,				/* Pointer to data buffer */
+	unsigned int bytesToRead	/* Number of bytes to read */
+)
+{
 	FR_BEGIN
-	FR_TRY(f_read(&SDFile, buff, btr, &br));
-	advanceSeekPosBy(btr);
+	FR_TRY(f_read(&SDFile, buff, bytesToRead, &_bytesRead));
+	advanceSeekPosBy(_bytesRead);
 	FR_END_R
 }
 
-FRESULT Storage::lseek(FSIZE_t offset) {
+SD_RESULT SD::lseek(
+	unsigned int offset
+)
+{
 	FR_BEGIN
 	advanceSeekPosBy(offset);
 	FR_TRY(f_lseek(&SDFile, getSeekPos()));
 	FR_END_R
 }
 
-
-
-
-FRESULT Storage::getSDPath(String path) {
+SD_RESULT SD::getSDPath(
+		char const * path
+)
+{
 	FR_BEGIN
 		path = SDPath;
 	FR_END
-};
+}
 
-//FRESULT Storage::scanFiles (
-//    char* path        /* Start node to be scanned (***also used as work area***) */
+//FRESULT SD::scanFiles (
+//    char const * path        /* Start node to be scanned (***also used as work area***) */
 //)
 //{
 //    FRESULT res;

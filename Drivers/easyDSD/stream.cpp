@@ -21,3 +21,53 @@
 */
 
 #include "stream.hpp"
+
+void Stream::routine(void) {
+
+	if(stateHasChanged()) {
+
+		switch(getState()) {
+
+		case PP_STANDBY:
+
+			break;
+
+		case PP_PI_READ_PO_STANDBY:
+
+			SD::lseek();
+
+			break;
+
+		case PP_PI_STREAM_PO_READ:
+
+			if(SD::getSeekPos() < _dsf.sampleDataSize)
+
+
+			SD::read(_stream.bufferBlockR(CH_LEFT, PP_PONG), _dsf.blockSizePerChannel);
+			SD::read(_stream.bufferBlockR(CH_RIGHT, PP_PONG), _dsf.blockSizePerChannel);
+			break;
+
+		case PP_PI_READ_PO_STREAM:
+
+			SD::read(_stream.bufferBlockR(CH_LEFT, PP_PING), _dsf.blockSizePerChannel);
+			SD::read(_stream.bufferBlockR(CH_RIGHT, PP_PING), _dsf.blockSizePerChannel);
+			break;
+
+		case PP_PI_HALT_PO_STREAM:
+
+			break;
+
+		case PP_PI_STREAM_PO_HALT:
+
+			break;
+
+		}
+	}
+
+
+	while() {
+
+	}
+
+
+}

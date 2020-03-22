@@ -20,6 +20,7 @@
 
 #define MAX_TRACK_NAME_SIZE 100
 
+#include "storage.hpp"
 #include "dsf.hpp"
 #include "stream.hpp"
 
@@ -27,7 +28,7 @@ typedef enum p_state_{
 
 	P_STOPPED,
 
-	P_STARTING_TO_PLAY,
+	P_PREPARE_TO_PLAY,
 	P_PLAYING,
 
 	P_PAUSING,
@@ -38,18 +39,19 @@ typedef enum p_state_{
 
 }p_state_e;
 
-class Player {
-
-	Stream stream;
+class Player : private virtual SD {
 
 public:
 
+	void task_player(void);
+
 	Player() :
-		stream(),
-		dsf(),
+		_stream(),
+		_dsf(),
 		_state(P_STOPPED),
 		_trackIsActive(false),
-		_activeTrackName{ 0 }
+		_activeTrackName{ 0 },
+		_TrackDataPtr(NULL)
 	{
 
 	};
@@ -59,10 +61,12 @@ public:
 	void play(const char * file_name)
 	{
 
+		if(!_trackIsActive && getState() == P_STOPPED) {
 
 
-		if(!_trackIsActive && getState() == P_STOPPED)
-			setState(P_STARTING_TO_PLAY);
+			setState(P_PREPARE_TO_PLAY);
+		}
+
 	};
 
 	void stop(void)
@@ -86,16 +90,16 @@ public:
 
 	void updateState(void) {
 
-		if(stream.isStandby()) {
+		if(_stream.isStandby()) {
 
 			if(getState() == P_STOPPING)
 				setState(P_STOPPED);
 			else if (getState() == P_PAUSING)
 				setState(P_PAUSED);
 		}
-		if(stream.isActive()) {
+		if(_stream.isActive()) {
 
-			if(getState() == P_STARTING_TO_PLAY ||
+			if(getState() == P_PREPARE_TO_PLAY ||
 					getState() == P_RESUMING)
 				setState(P_PLAYING);
 		}
@@ -108,10 +112,19 @@ public:
 	};
 
 private:
-	dsf_t dsf;
+
+	Stream _stream;
+
+	dsf_t _dsf;
 	p_state_e _state;
 	bool _trackIsActive;
 	char _activeTrackName[MAX_TRACK_NAME_SIZE];
+
+	void setTrackSampleDataPtr(uint8_t * position) { _TrackDataPos = position; };
+	void advanceTrackSampleDataPosPtr(uint8_t * step) { _TrackDataPos += step; }
+
+	uint8_t * _TrackDataPtr;
+
 
 	void setState(p_state_e state) { _state = state; };
 	void SetTrackActive(void) { _trackIsActive = true; };

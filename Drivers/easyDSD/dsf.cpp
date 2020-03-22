@@ -52,10 +52,9 @@
 		(memcmp(actual, expected, HEADER_SIZE) == 0 ? 1 : 0)
 #define PARSE_PASS(type) pMem+=sizeof(type)
 
-int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf) {
+int8_t dsf_readHeader(uint8_t const * dsfBinaryBuff, dsf_t & dsf) {
 
 	uint8_t header_tmp[HEADER_SIZE];
-	dsf_t dsf = { 0 };
 
 	PARSE_START(dsfBinaryBuff);
 
@@ -104,7 +103,6 @@ int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf) {
 
 	PARSE_END();
 
-	*pDsf = dsf;
 	return 1;
 
 	}
