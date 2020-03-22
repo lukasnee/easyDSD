@@ -50,23 +50,18 @@ public:
 		_dsf(),
 		_state(P_STOPPED),
 		_trackIsActive(false),
-		_activeTrackName{ 0 },
-		_TrackDataPtr(NULL)
+		_activeTrackName{ 0 }
 	{
 
 	};
-
-	bool IsTrackActive(void) { return _trackIsActive; };
 
 	void play(const char * file_name)
 	{
 
 		if(!_trackIsActive && getState() == P_STOPPED) {
 
-
 			setState(P_PREPARE_TO_PLAY);
 		}
-
 	};
 
 	void stop(void)
@@ -87,6 +82,51 @@ public:
 			setState(P_RESUMING);
 	};
 
+	uint32_t getElapsedPlayTime(void) const {
+
+		_stream.
+	}
+
+	class Track {
+
+	public:
+
+
+		// in seconds
+		uint32_t getTotalPlayTime(void) const {
+			if(IsActive()) {
+				return static_cast<uint32_t>(getSampleDataSize() * 8 /
+				getChannelNum() / getBitsPerSample() /
+				getSamplingFreq());
+			}
+		}
+
+		bool IsActive(void) const { return _trackIsActive; };
+
+		char const & getTrackFileName(void) const {
+			IsActive() ? _activeTrackName : NULL;
+		}
+		uint64_t getFileSize(void) const {
+			return IsActive() ?_dsf.totalFileSize : 0;}
+		uint8_t getChannelNum(void) const {
+			return IsActive() ? static_cast<uint8_t>(_dsf.channelNum) : 0;}
+		uint32_t getSamplingFreq(void) const {
+			return IsActive() ?_dsf.samplingFreq : 0;}
+		uint32_t getBitsPerSample(void) const {
+			IsActive() ? _dsf.bitsPerSample : 0;}
+		uint32_t getSampleCount(void) const {
+			IsActive() ? _dsf.sampleCount : 0;}
+
+	private:
+		uint32_t getBlockSizePerChannel(void) const {
+			IsActive() ? _dsf.blockSizePerChannel : 0;}
+		uint64_t getSampleDataSize(void) const {
+				IsActive() ? _dsf.sampleDataSize : 0;
+			}
+
+		dsf_t _dsf;
+
+	} track;
 
 	void updateState(void) {
 
@@ -115,16 +155,9 @@ private:
 
 	Stream _stream;
 
-	dsf_t _dsf;
 	p_state_e _state;
 	bool _trackIsActive;
 	char _activeTrackName[MAX_TRACK_NAME_SIZE];
-
-	void setTrackSampleDataPtr(uint8_t * position) { _TrackDataPos = position; };
-	void advanceTrackSampleDataPosPtr(uint8_t * step) { _TrackDataPos += step; }
-
-	uint8_t * _TrackDataPtr;
-
 
 	void setState(p_state_e state) { _state = state; };
 	void SetTrackActive(void) { _trackIsActive = true; };

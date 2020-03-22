@@ -24,50 +24,33 @@
 
 void Stream::routine(void) {
 
+	// while(true) { // todo when ported to OS
+	// osDelay(1);
+
 	if(stateHasChanged()) {
+
+		if(_streamPos > _streamEndPos)
+			endStream();
 
 		switch(getState()) {
 
-		case PP_STANDBY:
+		case STREAM_STANDBY: break;
 
+		case STREAM_PING_STREAM_PONG_READ:
+			SD::read(bufferBlockRW(CH_LEFT, PP_PONG), _blockSize);
+			SD::read(bufferBlockRW(CH_RIGHT, PP_PONG), _blockSize);
 			break;
 
-		case PP_PI_READ_PO_STANDBY:
-
-			SD::lseek();
-
+		case STREAM_PING_READ_PONG_STANDBY:
+		case STREAM_PING_READ_PONG_STREAM:
+			SD::read(bufferBlockRW(CH_LEFT, PP_PING), _blockSize);
+			SD::read(bufferBlockRW(CH_RIGHT, PP_PING), _blockSize);
 			break;
 
-		case PP_PI_STREAM_PO_READ:
-
-			if(SD::getSeekPos() < _dsf.sampleDataSize)
-
-
-			SD::read(_stream.bufferBlockR(CH_LEFT, PP_PONG), _dsf.blockSizePerChannel);
-			SD::read(_stream.bufferBlockR(CH_RIGHT, PP_PONG), _dsf.blockSizePerChannel);
-			break;
-
-		case PP_PI_READ_PO_STREAM:
-
-			SD::read(_stream.bufferBlockR(CH_LEFT, PP_PING), _dsf.blockSizePerChannel);
-			SD::read(_stream.bufferBlockR(CH_RIGHT, PP_PING), _dsf.blockSizePerChannel);
-			break;
-
-		case PP_PI_HALT_PO_STREAM:
-
-			break;
-
-		case PP_PI_STREAM_PO_HALT:
-
-			break;
+		case STREAM_PING_HALT_PONG_STREAM: break;
+		case STREAM_PING_STREAM_PONG_HALT: break;
 
 		}
 	}
-
-
-	while() {
-
-	}
-
-
+//}
 }
