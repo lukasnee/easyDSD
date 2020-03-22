@@ -64,186 +64,92 @@ typedef uint8_t
 
 class Stream : private virtual SD {
 
-	public:
+public:
 
-		Stream(void) :
-			_streamStartPos(0),
-			_streamPos(0),
-			_streamEndPos(0),
-			_blockSize(0),
-			_state(STREAM_STANDBY),
-			_statePrev(STREAM_STANDBY),
-			_arStreamBuffer{ 0xAA } { };
+	Stream(void) :
+		_streamStartPos(0),
+		_streamPos(0),
+		_streamEndPos(0),
+		_blockSize(0),
+		_state(STREAM_STANDBY),
+		_statePrev(STREAM_STANDBY),
+		_arStreamBuffer{ 0xAA } { };
 
 	/* stream user interface */
+	/* NOTE. FILE MUST ALREADY BE OPENED */
+	bool start(uint64_t streamStartPos, uint64_t streamPos,
+			uint64_t streamEndPos, uint16_t blockSize);
+	bool stop(void);
+	bool pause(void);
+	bool resume(void);
 
-		/* NOTE. FILE MUST ALREADY BE OPENED */
-		bool start(
-				uint64_t streamStartPos,
-				uint64_t streamPos,
-				uint64_t streamEndPos,
-				uint16_t blockSize
-			)
-		{
-
-			if(streamStartPos < streamEndPos &&
-					blockSize && blockSize <= EDSD_MAX_BUF_SIZE) {
-				_streamStartPos = streamStartPos;
-				_streamEndPos = streamEndPos;
-				_blockSize = blockSize;
-
-				if(moveStreamPos(streamPos)) {
-
-					_streamEndPos = streamEndPos;
-					setState(STREAM_PING_READ_PONG_STANDBY);
-					routine();	/* todo start routine task in os */
-					return true;
-				}
-			}
-			endStream();
-			return false;
-		};
-
-		bool stop(void) {
-
-			if(getState() == STREAM_PING_STREAM_PONG_HALT)
-				setState(STREAM_PING_STREAM_PONG_HALT);
-			else if (getState() == STREAM_PING_HALT_PONG_STREAM)
-				setState(STREAM_PING_HALT_PONG_STREAM);
-
-			if(endStream())
-				return true;
-			return false;
-		};
-
-
-		bool pause(void) { /* todo */
-
-			if(getState() != STREAM_STANDBY || getState() != STREAM_PAUSED) {
-				setState(STREAM_PAUSED);
-				return true;
-			}
-			return false;
-		};
-
-		bool resume(void) { /* todo */
-
-			if(getState() == STREAM_PAUSED) {
-				setState(STREAM_PING_READ_PONG_STANDBY);
-				return true;
-			}
-			return false;
-		};
-
-	/* streamer state identifiers */
-
-		bool isStandby(void) { return _state == STREAM_STANDBY; };
-		bool isActive(void) {
-			return ((_state != STREAM_STANDBY) &&
-					(_state != STREAM_PAUSED)); };
+	/* useful streamer state identifiers */
+	bool isStandby(void);
+	bool isActive(void);
 
 	/* Main _arStreamBuffer segmented interface with
 	 * Read/Write or Read-Only access and boundary protection */
 
-		/* full buffer access */
-		buff_stream_3ar* bufferRW(void) {
-			return reinterpret_cast<buff_stream_3ar*>(_arStreamBuffer); };
-		buff_stream_3ar const * bufferR(void) { return bufferRW(); }
+	/* full buffer access */
+	buff_stream_3ar* bufferRW(void);
+	buff_stream_3ar const * bufferR(void);
 
-		/* PingPong access */
-		buff_ping_pong_2ar* bufferChannelRW(channel_e ch) {
-			return ((ch < EDSD_MAX_CHANNELS) ? reinterpret_cast<buff_ping_pong_2ar*>(_arStreamBuffer[ch]) : NULL); };
-		buff_ping_pong_2ar const * bufferPingPongR(channel_e ch) { return bufferChannelRW(ch); };
+	/* PingPong access */
+	buff_ping_pong_2ar* bufferChannelRW(channel_e ch);
+	buff_ping_pong_2ar const * bufferPingPongR(channel_e ch);
 
-		/* individual block access */
-		buff_block_ar* bufferBlockRW(channel_e ch, pingpong_e pp) {
-			return ((pp < 2) ? reinterpret_cast<buff_block_ar*>(bufferChannelRW(ch)[pp]) : NULL);};
-		buff_block_ar const * bufferBlockR(channel_e ch, pingpong_e pp) { return bufferBlockRW(ch, pp); };
+	/* individual block access */
+	buff_block_ar* bufferBlockRW(channel_e ch, pingpong_e pp);
+	buff_block_ar const * bufferBlockR(channel_e ch, pingpong_e pp);
 
-	/* triggers for letting streamer know if
-	 * data block succeeded streaming via DMA */
-
-		void alertPingBuffFinishedStreaming(void) { _state = STREAM_PING_READ_PONG_STREAM; };
-		void alertPongBuffFinishedStreaming(void) { _state = STREAM_PING_STREAM_PONG_READ; };
+	/* Triggers from hardware DMA for letting
+	streamer know if data block succeeded streaming */
+	void alertPingBuffFinishedStreaming(void);
+	void alertPongBuffFinishedStreaming(void);
 
 	/* streamer sample data read pointer position managing methods */
 
-		/* for moving position relative to start of sample data
-		 * NOTE. position is interpreted in width of bytes. */
-		bool moveStreamPos(uint64_t position) {
-			if(position >= _streamStartPos && position <= _streamEndPos) {
-				if(SD::lseek(_streamStartPos + position) == SD_OK) {
-					_streamPos = position;
-					return true; // success
-				}
-			}
-			return false; // failed: out of bounds or SD error...
-		};
+	/* for moving position relative to start of sample data
+	 * NOTE. position is interpreted in width of bytes. */
+	bool moveStreamPos(uint64_t position);
+	/* for moving stream pointer relative to current position. */
+	bool advanceStreamPos(uint64_t step);
+	uint64_t getSampleDataPosPos(void);
 
-		/* for moving stream pointer relative to current position. */
-		bool advanceStreamPos(uint64_t step) {
-			if(moveStreamPos(getSampleDataPosPos() +  step))
-				return true;
-			return false;
-		};
-
-		uint64_t getSampleDataPosPos(void) { return _streamPos; };
-
-	private:
-
+private:
 
 	/* stream state */
-
-		bool pingIsStreamingPongIsReading(void) {
-			return _state == STREAM_PING_STREAM_PONG_READ; };
-		bool pingIsReadingPongIsStreaming(void) {
-			return _state == STREAM_PING_READ_PONG_STREAM; };
-		bool isStarting(void) { return _state == STREAM_PING_READ_PONG_STANDBY; };
-		bool isStopping(void) {
-			return ((_state == STREAM_PING_HALT_PONG_STREAM) ||
-					(_state == STREAM_PING_STREAM_PONG_HALT)); };
-
-		ping_pong_e getState(void) { return _state; };
-		void setState(ping_pong_e state) { _state = state; };
-		void flipActiveState(void) { _state = ((_state == STREAM_PING_READ_PONG_STREAM) ? STREAM_PING_STREAM_PONG_READ : STREAM_PING_READ_PONG_STREAM); };
-		bool stateHasChanged(void) {
-			if(_state != _statePrev) {
-				_statePrev = _state; return true;
-			}
-			return false;
-		};
+	bool pingIsStreamingPongIsReading(void);
+	bool pingIsReadingPongIsStreaming(void);
+	bool isStarting(void);
+	bool isStopping(void);
+	ping_pong_e getState(void);
+	void setState(ping_pong_e state);
+	void flipActiveState(void);
+	bool stateHasChanged(void);
 
 	/* streaming routine, should be continuously active (todo fit in a os task) */
-		void routine(void);
-
-		/* stream escape */
-		bool endStream(void) {
-
-			_streamStartPos = _streamPos = _streamEndPos = _blockSize = 0;
-			_state = _statePrev = STREAM_STANDBY;
-			if(SD::close() == SD_OK)
-				return true;
-			return false;
-		}
-
-	// for tracking position within streamer. Not for user.
-		void trackSampleDataPosPtr(uint64_t step) { _streamPos += step; };
+	void routine(void);
+	/* stream escape */
+	bool endStream(void);
+	/* for tracking position within streamer. Not for user. */
+	void trackSampleDataPosPtr(uint64_t step);
 
 	/* NOTE. all stream psitions interpreted in width of bytes.
 	relative to file's first byte position. */
-		uint64_t _streamStartPos;
-		uint64_t _streamPos;
-		uint64_t _streamEndPos;
-		uint16_t _blockSize;
+	uint64_t _streamStartPos;
+	uint64_t _streamPos;
+	uint64_t _streamEndPos;
+	uint16_t _blockSize;
 
 	/* streamer dataflow state */
-		ping_pong_e _state;
-		ping_pong_e _statePrev; // for triggering a change
+	ping_pong_e _state;
+	ping_pong_e _statePrev; // for triggering a change
 
-		/* THIS TAKES A LOT OF RAM, 16kB default,
-		 * memory field must be DMA enabled */
-		buff_stream_3ar _arStreamBuffer;
+	/* THIS TAKES A LOT OF RAM, 16kB default,
+	memory field must be DMA enabled */
+	buff_stream_3ar _arStreamBuffer;
 
-	};
+};
 
 #endif /* EASYDSD_INCLUDE_STREAM_HPP_ */
