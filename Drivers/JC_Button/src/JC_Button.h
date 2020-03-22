@@ -7,7 +7,7 @@
 #define JC_BUTTON_H_INCLUDED
 
 // modded to work with STM32 HAL. By Therram 2020.
-#include "hwg.hpp"
+#include "../../easyDSD/include/hwg.hpp"
 
 class Button
 {

@@ -21,10 +21,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "fatfs.h"
+#include "../../Drivers/easyDSD/include/easyDSD.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "openDSD.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

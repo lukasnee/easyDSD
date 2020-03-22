@@ -16,7 +16,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <hwg.hpp>
+#include "hwg.hpp"
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,8 +5,8 @@
  *      Author: Lukas
  */
 
-#ifndef TH_DSD_INCLUDE_LOG_HPP_
-#define TH_DSD_INCLUDE_LOG_HPP_
+#ifndef EASYDSD_INCLUDE_LOG_HPP_
+#define EASYDSD_INCLUDE_LOG_HPP_
 
 #include "Adafruit_GFX.h"
 
@@ -43,4 +43,4 @@ private:
 	uint32_t _head; /* last entered symbol index in _log buffer */
 };
 
-#endif /* TH_DSD_INCLUDE_LOG_HPP_ */
+#endif /* EASYDSD_INCLUDE_LOG_HPP_ */

@@ -33,9 +33,8 @@ extern "C" {
 }
 #endif
 
+#include "../../easyDSD/include/hwg.hpp"
 #include "fatfs.h"			/* FAT32 file system */
-#include "JC_Button.h" 		/* library for GPIO hardware buttons (debounce, etc.)*/
-#include "Adafruit_GFX.h"
 
 #define FR_BEGIN \
 	FRESULT res = FR_OK;
@@ -69,7 +68,11 @@ class Storage {
 
 public:
 
-	Storage(void) : seekPos(0) {};
+	Storage(void) : seekPos(0)
+	{
+		mount();
+	};
+
 	~Storage(void) {};
 
 	static void errorHandler(FRESULT r);
@@ -81,7 +84,8 @@ public:
 			write(const void* buff, UINT btw, UINT &bw),
 			read(void* buff, UINT btr, UINT &br),
 			lseek(FSIZE_t offset),
-			getSDPath(String path);
+			getSDPath(String path),
+			scanFiles(char* path);
 
 	uint32_t getSeekPos(void) { return seekPos; };
 	void setSeekPos(uint32_t position) { seekPos = position; };

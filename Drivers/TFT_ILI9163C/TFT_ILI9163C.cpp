@@ -2,11 +2,16 @@
 
 #include <limits.h>
 
+#include "wucyFont8pt7b.h"
+
+
 TFT_ILI9163C::TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin) : GFXcanvas16(_TFTWIDTH,_TFTHEIGHT)
 {
 	_cs   = cspin;
 	_rs   = dcpin;
 	_rst  = rstpin;
+
+	begin();
 }
 
 void TFT_ILI9163C::updateScreen(void) {
@@ -15,6 +20,18 @@ void TFT_ILI9163C::updateScreen(void) {
 	homeAddress();
 	spi.transfer((uint8_t*)getBuffer(), DC_DATA, _GRAMWIDTH * _GRAMHEIGH * sizeof(uint16_t));
 
+}
+
+/* @brief print style (default) good for logging.
+ * */
+void TFT_ILI9163C::printStylePipboy(void) {
+
+	setFont(&wucyFont8pt7b);
+	setTextSize(1);
+	setTextColor(C_LIME);
+	setTextWrap(true);
+	setBounds(width(), height());
+	setCursor(0, getCharMaxHeight());
 }
 
 void TFT_ILI9163C::writecommand(uint8_t c)

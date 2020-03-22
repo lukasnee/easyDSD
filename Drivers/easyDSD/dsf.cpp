@@ -17,7 +17,8 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <dsf.hpp>
+#include "dsf.hpp"
+
 #include <cstring>
 
 #define PARSE_START(p_head) { \
@@ -33,7 +34,8 @@
 #define PARSE_READ_BUFF(pDestination, length) \
 	memcpy(pDestination, pMem, length); pMem+=length
 
-#define PARSE_END(bytesRead) bytesRead = PARSE_POSITION;}
+#define PARSE_END_BR(bytesRead) bytesRead = PARSE_POSITION;}
+#define PARSE_END() }
 
 #define VALIDATE(expected, type) \
 	if(*(type*)pMem != expected) return -1;
@@ -54,7 +56,6 @@ int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf) {
 
 	uint8_t header_tmp[HEADER_SIZE];
 	dsf_t dsf = { 0 };
-	dsf_ptr_t bytesRead = 0;
 
 	PARSE_START(dsfBinaryBuff);
 
@@ -81,10 +82,10 @@ int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf) {
 	VALIDATE(DSF_FMT_FORMAT_ID_RAW, uint32_t); // raw - the one and only, lol
 	PARSE_READ(dsf.formatId, uint32_t);
 
-	PARSE_READ(dsf.channelType, ch_type_t);
+	PARSE_READ(dsf.channelType,ch_type_e);
 	VALIDATE_BETWEEN(dsf.channelType, CHT_MONO, CHT_5_1_CHANNELS);
 
-	PARSE_READ(dsf.channelNum, ch_num_t);
+	PARSE_READ(dsf.channelNum, ch_num_e);
 	VALIDATE_BETWEEN(dsf.channelNum, CHNUM_MONO, CHNUM_6);
 
 	PARSE_READ(dsf.samplingFreq, uint32_t);
@@ -101,7 +102,7 @@ int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf) {
 	PARSE_READ(dsf.sampleDataSize, uint64_t);
 	dsf.pSampleData = PARSE_POSITION;
 
-	PARSE_END(bytesRead);
+	PARSE_END();
 
 	*pDsf = dsf;
 	return 1;

@@ -16,7 +16,8 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <storage.hpp>
+#include "storage.hpp"
+
 #include "string.h"
 
 #ifdef __cplusplus
@@ -111,37 +112,77 @@ FRESULT Storage::getSDPath(String path) {
 	FR_END
 };
 
+//FRESULT Storage::scanFiles (
+//    char* path        /* Start node to be scanned (***also used as work area***) */
+//)
+//{
+//    FRESULT res;
+//    DIR dir;
+//    UINT i;
+//    static FILINFO fno;
+//    char strLine[50];
+//
+//	tft.setTextWrap(true);
+//	tft.setBounds(_GRAMWIDTH, _GRAMHEIGH);
+//	tft.setFont(&wucyFont8pt7b);
+//	tft.setTextSize(1);
+//	tft.setDrawColor(C_BLACK);
+//	tft.fillRect(0, 0, _GRAMWIDTH, _GRAMHEIGH);
+//	tft.setCursor(0, 0 + tft.getCharMaxHeight());
+//	tft.setTextColor(C_LIME);
+//
+//    res = f_opendir(&dir, path);                       /* Open the directory */
+//    if (res == FR_OK) {
+//        for (;;) {
+//            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+//            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+//            if (fno.fattrib & AM_DIR) {                    /* It is a directory */
+//                i = strlen(path);
+//                sprintf(&path[i], "/%s", fno.fname);
+//                res = scanFiles(path);                    /* Enter the directory */
+//                if (res != FR_OK) break;
+//                path[i] = 0;
+//            } else {                                       /* It is a file. */
+//                sprintf(strLine, "%s/%s\n", path, fno.fname);
+//                tft.print(strLine);
+//            }
+//        }
+//        f_closedir(&dir);
+//    }
+//
+//    return res;
+//}
 
 
-/*
-void fooo(void) {
 
-	FRESULT res;                                           FatFs function common result code
-	UINT byteswritten, bytesread;                      File write/read counts
-	uint8_t wtext[] = "Hello from bambukas :)";  File write buffer
-	uint8_t rtext[100];                                    File read buffer
+//void fooo(void) {
+//
+//	FRESULT res;                                           FatFs function common result code
+//	UINT byteswritten, bytesread;                      File write/read counts
+//	uint8_t wtext[] = "Hello from bambukas :)";  File write buffer
+//	uint8_t rtext[100];                                    File read buffer
+//
+//	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) == FR_OK)
+//	{
+//		HAL_Delay(200);
+//
+//		//Open file for writing (Create)
+//		if(f_open(&SDFile, "F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
+//
+//			//Write to the text file
+//			res = f_write(&SDFile, wtext, strlen((char *)wtext), &byteswritten);
+//
+//			f_close(&SDFile);
+//
+//			//Test read file
+//			f_open(&SDFile, "F7FILE5.TXT",  FA_READ);
+//			memset(rtext,0,sizeof(rtext));
+//			res = f_read(&SDFile, rtext, sizeof(rtext), &bytesread);
+//
+//			f_close(&SDFile);
+//		}
+//	}
+//	f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
+//}
 
-	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) == FR_OK)
-	{
-		HAL_Delay(200);
-
-		//Open file for writing (Create)
-		if(f_open(&SDFile, "F7FILE5.TXT", FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
-
-			//Write to the text file
-			res = f_write(&SDFile, wtext, strlen((char *)wtext), &byteswritten);
-
-			f_close(&SDFile);
-
-			//Test read file
-			f_open(&SDFile, "F7FILE5.TXT",  FA_READ);
-			memset(rtext,0,sizeof(rtext));
-			res = f_read(&SDFile, rtext, sizeof(rtext), &bytesread);
-
-			f_close(&SDFile);
-		}
-	}
-	f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
-}
-*/
 

@@ -30,12 +30,16 @@
 #define	BLACK   		0x0000
 #define WHITE   		0xFFFF
 
+extern const GFXfont wucyFont8pt7b;
+
 
 class TFT_ILI9163C : public GFXcanvas16 {
 
  public:
 				TFT_ILI9163C(uint8_t cspin,uint8_t dcpin,uint8_t rstpin = 0xFF);
 	void 		updateScreen(void);
+	void 		printStylePipboy(void);
+
 	void     	begin(void),
 				setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1),//graphic Addressing
 //				setCursor(int16_t x,int16_t y),//char addressing

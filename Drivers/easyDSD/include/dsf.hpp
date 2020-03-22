@@ -17,8 +17,8 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef TH_DSD_INCLUDE_DSF_HPP_
-#define TH_DSD_INCLUDE_DSF_HPP_
+#ifndef EASYDSD_INCLUDE_DSF_HPP_
+#define EASYDSD_INCLUDE_DSF_HPP_
 
 #include <cstdio>
 
@@ -113,4 +113,4 @@ typedef struct dsf{
 
 int8_t dsf_readHeader(const uint8_t* dsfBinaryBuff, dsf_t * pDsf);
 
-#endif /* TH_DSD_INCLUDE_DSF_HPP_ */
+#endif /* EASYDSD_INCLUDE_DSF_HPP_ */

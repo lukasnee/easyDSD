@@ -1,12 +1,11 @@
 #ifndef _ADAFRUIT_GFX_H
 #define _ADAFRUIT_GFX_H
 
-#include "hwg.hpp"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "gfxfont.h"
+#include "../easyDSD/include/hwg.hpp"
 
 //=========SETTINGS============
 /* select one COLOR_DATA_ */
