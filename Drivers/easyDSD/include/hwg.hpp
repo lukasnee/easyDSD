@@ -118,6 +118,38 @@ private:
 
 extern SPI spi;
 
+// hardware DMA I2S application program interface
+class I2S_DMA {
+
+	void startCircularStreamOnHardware(channel_e channel, uint8_t const * fliflopBuff, uint16_t size) {
+
+		switch(channel) {
+
+		case  CH_LEFT:
+			HAL_I2S_Transmit_DMA(&hi2s2, reinterpret_cast<uint16_t *>(fliflopBuff), size/sizeof(uint16_t));
+			break;
+
+		case CH_RIGHT:
+			HAL_I2S_Transmit_DMA(&hi2s3, reinterpret_cast<uint16_t *>(fliflopBuff), size/sizeof(uint16_t));
+			break;
+		}
+	}
+
+	void stopCircularStreamOnHardware(channel_e channel) {
+
+		switch(channel) {
+
+		case  CH_LEFT:
+			HAL_I2S_DMAStop(&hi2s2);
+			break;
+
+		case CH_RIGHT:
+			HAL_I2S_DMAStop(&hi2s3);
+			break;
+		}
+	}
+};
+
 /* Arduino naming work-around */
 
 #define pinMode(pin, mode)  /* todo: does nothing, for now its enough. */

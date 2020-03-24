@@ -26,7 +26,15 @@
 
 #include <stdio.h>
 #include "Storage.hpp"
+#include "hwg.hpp"
 #include "easyDSD.h"
+
+/*
+TODO:
+	- add frequency configuring
+	- add support for PCM
+	- add support for multi-bit DSD (maybe)
+*/
 
 typedef enum ping_pong_{
 
@@ -62,21 +70,20 @@ typedef uint8_t
 typedef uint8_t
 		buff_stream_3ar[EDSD_MAX_CHANNELS][EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
 
-class Stream : private virtual SD {
+class Stream : private virtual SD, private virtual I2S_DMA {
 
 public:
 
-	Stream(void) :
-		_streamStartPos(0),
-		_streamPos(0),
-		_streamEndPos(0),
-		_blockSize(0),
-		_state(STREAM_STANDBY),
-		_statePrev(STREAM_STANDBY),
-		_arStreamBuffer{ 0xAA } { };
+	/* HARDWARE SETUP */
 
-	/* stream user interface */
-	/* NOTE. FILE MUST ALREADY BE OPENED */
+	/* Triggers from hardware DMA for letting
+	streamer know if data block succeeded streaming */
+	void alertPingBuffFinishedStreaming(void);
+	void alertPongBuffFinishedStreaming(void);
+
+	/* INTERFACE.*/
+
+	// note.file must already be opened in FAT file-system.
 	bool start(uint64_t streamStartPos, uint64_t streamPos,
 			uint64_t streamEndPos, uint16_t blockSize);
 	bool stop(void);
@@ -87,26 +94,6 @@ public:
 	bool isStandby(void);
 	bool isActive(void);
 
-	/* Main _arStreamBuffer segmented interface with
-	 * Read/Write or Read-Only access and boundary protection */
-
-	/* full buffer access */
-	buff_stream_3ar* bufferRW(void);
-	buff_stream_3ar const * bufferR(void);
-
-	/* PingPong access */
-	buff_ping_pong_2ar* bufferChannelRW(channel_e ch);
-	buff_ping_pong_2ar const * bufferPingPongR(channel_e ch);
-
-	/* individual block access */
-	buff_block_ar* bufferBlockRW(channel_e ch, pingpong_e pp);
-	buff_block_ar const * bufferBlockR(channel_e ch, pingpong_e pp);
-
-	/* Triggers from hardware DMA for letting
-	streamer know if data block succeeded streaming */
-	void alertPingBuffFinishedStreaming(void);
-	void alertPongBuffFinishedStreaming(void);
-
 	/* streamer sample data read pointer position managing methods */
 
 	/* for moving position relative to start of sample data
@@ -114,9 +101,37 @@ public:
 	bool moveStreamPos(uint64_t position);
 	/* for moving stream pointer relative to current position. */
 	bool advanceStreamPos(uint64_t step);
-	uint64_t getSampleDataPosPos(void);
+	uint64_t getSampleDataPos(void);
+
+	Stream(void) :
+		_streamStartPos(0),
+		_streamPos(0),
+		_streamEndPos(0),
+		_blockSize(0),
+		_state(STREAM_STANDBY),
+		_statePrev(STREAM_STANDBY),
+		_arStreamBuffer{ 0xAA }
+	{
+
+	};
 
 private:
+
+	/* Main _arStreamBuffer segmented interface with
+	 * Read/Write or Read-Only access and boundary protection */
+
+	/* full buffer access */
+	buff_stream_3ar * 			bufferRW(void);
+	buff_stream_3ar const * 	bufferR(void);
+
+	/* PingPong access */
+	buff_ping_pong_2ar * 		bufferChannelRW(channel_e ch);
+	buff_ping_pong_2ar const * 	bufferChannelR(channel_e ch);
+
+	/* individual block access */
+	buff_block_ar * 			bufferBlockRW(channel_e ch, pingpong_e pp);
+	buff_block_ar const * 		bufferBlockR(channel_e ch, pingpong_e pp);
+
 
 	/* stream state */
 	bool pingIsStreamingPongIsReading(void);
@@ -128,9 +143,11 @@ private:
 	void flipActiveState(void);
 	bool stateHasChanged(void);
 
+	/* start routine on given parameters */
+	bool startStream(void);
 	/* streaming routine, should be continuously active (todo fit in a os task) */
 	void routine(void);
-	/* stream escape */
+	/* stream escape routine */
 	bool endStream(void);
 	/* for tracking position within streamer. Not for user. */
 	void trackSampleDataPosPtr(uint64_t step);

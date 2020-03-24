@@ -33,17 +33,13 @@ bool Stream::start(
 
 	if(streamStartPos < streamEndPos &&
 			blockSize && blockSize <= EDSD_MAX_BUF_SIZE) {
+
 		_streamStartPos = streamStartPos;
 		_streamEndPos = streamEndPos;
 		_blockSize = blockSize;
 
-		if(moveStreamPos(streamPos)) {
-
-			/* todo DMA start !!! */
-			setState(STREAM_PING_READ_PONG_STANDBY);
-			routine();	/* todo start routine task in os */
+		if(startStream())
 			return true;
-		}
 	}
 	endStream();
 	return false;
@@ -87,8 +83,7 @@ bool Stream::isStandby(void) {
 }
 
 bool Stream::isActive(void) {
-	return ((_state != STREAM_STANDBY) &&
-			(_state != STREAM_PAUSED));
+	return ((_state != STREAM_STANDBY) && (_state != STREAM_PAUSED));
 }
 
 /* full buffer access */
@@ -106,7 +101,7 @@ buff_ping_pong_2ar* Stream::bufferChannelRW(channel_e ch) {
 			reinterpret_cast<buff_ping_pong_2ar*>(_arStreamBuffer[ch]) : NULL);
 }
 
-buff_ping_pong_2ar const * Stream::bufferPingPongR(channel_e ch) {
+buff_ping_pong_2ar const * Stream::bufferChannelR(channel_e ch) {
 	return bufferChannelRW(ch);
 }
 
@@ -144,12 +139,12 @@ bool Stream::moveStreamPos(uint64_t position) {
 
 /* for moving stream pointer relative to current position. */
 bool Stream::advanceStreamPos(uint64_t step) {
-	if(moveStreamPos(getSampleDataPosPos() +  step))
+	if(moveStreamPos(_streamPos +  step))
 		return true;
 	return false;
 }
 
-uint64_t Stream::getSampleDataPosPos(void) {
+uint64_t Stream::getSampleDataPos(void) {
 	return _streamPos;
 }
 
@@ -186,7 +181,20 @@ void Stream::flipActiveState(void) {
 
 bool Stream::stateHasChanged(void) {
 	if(_state != _statePrev) {
-		_statePrev = _state; return true;
+		_statePrev = _state;
+		return true;
+	}
+	return false;
+}
+
+bool Stream::startStream(void) {
+
+	if(moveStreamPos(_streamPos)) {
+
+		/* todo DMA start !!! */
+		setState(STREAM_PING_READ_PONG_STANDBY);
+		routine();	/* todo start routine task in os */
+		return true;
 	}
 	return false;
 }
@@ -204,22 +212,33 @@ void Stream::routine(void) {
 
 		switch(getState()) {
 
-		case STREAM_STANDBY: break;
-		case STREAM_PAUSED: break;
+			case STREAM_STANDBY:
+			case STREAM_PAUSED:
+				stopCircularStreamOnHardware(CH_LEFT);
+				stopCircularStreamOnHardware(CH_RIGHT);
+				break;
 
-		case STREAM_PING_STREAM_PONG_READ:
-			SD::read(bufferBlockRW(CH_LEFT, PP_PONG), _blockSize);
-			SD::read(bufferBlockRW(CH_RIGHT, PP_PONG), _blockSize);
-			break;
+			case STREAM_PING_STREAM_PONG_READ:
+				SD::read(bufferBlockRW(CH_LEFT, PP_PONG), _blockSize);
+				trackSampleDataPosPtr(SD::getBytesRead());
+				SD::read(bufferBlockRW(CH_RIGHT, PP_PONG), _blockSize);
+				trackSampleDataPosPtr(SD::getBytesRead());
+				break;
 
-		case STREAM_PING_READ_PONG_STANDBY:
-		case STREAM_PING_READ_PONG_STREAM:
-			SD::read(bufferBlockRW(CH_LEFT, PP_PING), _blockSize);
-			SD::read(bufferBlockRW(CH_RIGHT, PP_PING), _blockSize);
-			break;
+			case STREAM_PING_READ_PONG_STANDBY: // stream just started state
+			case STREAM_PING_READ_PONG_STREAM:
+				SD::read(bufferBlockRW(CH_LEFT, PP_PING), _blockSize);
+				trackSampleDataPosPtr(SD::getBytesRead());
+				SD::read(bufferBlockRW(CH_RIGHT, PP_PING), _blockSize);
+				trackSampleDataPosPtr(SD::getBytesRead());
+				if(getState() == STREAM_PING_READ_PONG_STANDBY) {
+					startCircularStreamOnHardware(CH_LEFT, (uint8_t const *)bufferChannelR(CH_LEFT), _blockSize*2);
+					startCircularStreamOnHardware(CH_RIGHT, (uint8_t const *)bufferChannelR(CH_RIGHT), _blockSize*2);
+				}
+				break;
 
-		case STREAM_PING_HALT_PONG_STREAM: break;
-		case STREAM_PING_STREAM_PONG_HALT: break;
+			case STREAM_PING_HALT_PONG_STREAM: break;
+			case STREAM_PING_STREAM_PONG_HALT: break;
 
 		}
 	}

@@ -56,7 +56,29 @@ typedef enum channel_num{
 	CHNUM_6
 }ch_num_e;
 
-typedef struct dsf{
+class DSF {
+
+public:
+
+	bool readHeader(uint8_t const * buff);
+
+	uint64_t getFileSize(void) const { return totalFileSize;}
+	uint8_t getChannelNum(void) const { return static_cast<uint8_t>(channelNum);}
+	uint32_t getSamplingFreq(void) const { return samplingFreq; }
+	uint32_t getBitsPerSample(void) const { return bitsPerSample;}
+	uint32_t getSampleCount(void) const { return sampleCount;}
+	uint32_t getBlockSizePerChannel(void) const { return blockSizePerChannel;}
+	uint64_t getSampleDataSize(void) const { return sampleDataSize;}
+	uint64_t getSampleDataP(void) const { return pSampleData;}
+
+	// in seconds
+	uint32_t getTotalPlayTime(void) const {
+			return static_cast<uint32_t>(getSampleDataSize() * 8 /
+			getChannelNum() / getBitsPerSample() /
+			getSamplingFreq());
+	}
+
+private:
 
 /* dsd header data */
 
@@ -109,8 +131,7 @@ typedef struct dsf{
 	(00000000, 00000001, 00000010, 00000011, 00000100, ….)
 */
 
-}dsf_t;
+};
 
-int8_t dsf_readHeader(uint8_t const * dsfBinaryBuff, dsf_t & pDsf);
 
 #endif /* EASYDSD_INCLUDE_DSF_HPP_ */

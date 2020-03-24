@@ -46,8 +46,7 @@ public:
 	void task_player(void);
 
 	Player() :
-		_stream(),
-		_dsf(),
+		stream(),
 		_state(P_STOPPED),
 		_trackIsActive(false),
 		_activeTrackName{ 0 }
@@ -57,10 +56,23 @@ public:
 
 	void play(const char * file_name)
 	{
-
 		if(!_trackIsActive && getState() == P_STOPPED) {
 
-			setState(P_PREPARE_TO_PLAY);
+			/*"2L-125_stereo-2822k-1b_04.dsf"*/
+			/*"03 - Roxy Music - Avalon.dsf"*/
+
+			// open .dsf file, read first block for header
+			if(SD::open(file_name,  SD_READ) == SD_OK && readDSFheader()) {
+
+				strcpy(_activeTrackName, file_name);
+
+				uint64_t startPos = dsf.getSampleDataP();
+				uint64_t endPos = startPos + dsf.getSampleDataSize();
+				uint16_t blockSize = dsf.getBlockSizePerChannel();
+
+				stream.start(startPos, startPos, endPos, blockSize);
+
+			}
 		}
 	};
 
@@ -84,60 +96,28 @@ public:
 
 	uint32_t getElapsedPlayTime(void) const {
 
-		_stream.
+		uint32_t elapsedTime = stream.getSampleDataPos();
+		elapsedTime = elapsedTime * 8 /
+				dsf.getChannelNum() / dsf.getBitsPerSample() /
+				dsf.getSamplingFreq();
+
+		return elapsedTime;
 	}
 
-	class Track {
 
-	public:
+	auto & getTrackFileName(void) const { return _activeTrackName; }
 
-
-		// in seconds
-		uint32_t getTotalPlayTime(void) const {
-			if(IsActive()) {
-				return static_cast<uint32_t>(getSampleDataSize() * 8 /
-				getChannelNum() / getBitsPerSample() /
-				getSamplingFreq());
-			}
-		}
-
-		bool IsActive(void) const { return _trackIsActive; };
-
-		char const & getTrackFileName(void) const {
-			IsActive() ? _activeTrackName : NULL;
-		}
-		uint64_t getFileSize(void) const {
-			return IsActive() ?_dsf.totalFileSize : 0;}
-		uint8_t getChannelNum(void) const {
-			return IsActive() ? static_cast<uint8_t>(_dsf.channelNum) : 0;}
-		uint32_t getSamplingFreq(void) const {
-			return IsActive() ?_dsf.samplingFreq : 0;}
-		uint32_t getBitsPerSample(void) const {
-			IsActive() ? _dsf.bitsPerSample : 0;}
-		uint32_t getSampleCount(void) const {
-			IsActive() ? _dsf.sampleCount : 0;}
-
-	private:
-		uint32_t getBlockSizePerChannel(void) const {
-			IsActive() ? _dsf.blockSizePerChannel : 0;}
-		uint64_t getSampleDataSize(void) const {
-				IsActive() ? _dsf.sampleDataSize : 0;
-			}
-
-		dsf_t _dsf;
-
-	} track;
 
 	void updateState(void) {
 
-		if(_stream.isStandby()) {
+		if(stream.isStandby()) {
 
 			if(getState() == P_STOPPING)
 				setState(P_STOPPED);
 			else if (getState() == P_PAUSING)
 				setState(P_PAUSED);
 		}
-		if(_stream.isActive()) {
+		if(stream.isActive()) {
 
 			if(getState() == P_PREPARE_TO_PLAY ||
 					getState() == P_RESUMING)
@@ -151,9 +131,14 @@ public:
 		return _state;
 	};
 
+
+	bool IsActive(void) const { return _trackIsActive; };
+
+
 private:
 
-	Stream _stream;
+	Stream stream;
+	DSF dsf;
 
 	p_state_e _state;
 	bool _trackIsActive;
@@ -163,6 +148,19 @@ private:
 	void SetTrackActive(void) { _trackIsActive = true; };
 	void SetTrackInactive(void) { _trackIsActive = false; };
 
+
+	bool readDSFheader(void) {
+
+		/* todo check if it is .dsf, if not, do not parse as dsf */
+		// parse dsf header
+		uint8_t * headerBlockRoughly = new uint8_t[100];
+		if(SD::read(headerBlockRoughly, sizeof(headerBlockRoughly)) != SD_OK)
+			return false;
+		if(!dsf.readHeader(headerBlockRoughly))
+			return false;
+		delete headerBlockRoughly;
+		return true;
+	}
 };
 
 #endif /* EASYDSD_INCLUDE_PLAYER_HPP_ */
