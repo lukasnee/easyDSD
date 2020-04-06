@@ -27,54 +27,23 @@ extern "C" {
 }
 #endif
 
-//osThreadId defaultTaskHandle;
-void easyDSD::easy_dsd_start_task(void const * argument) {
-
-//	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
-//	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
-
-	static easyDSD edsd;
-
-	edsd.task_easy_dsd();
-
-}
-
 void easyDSD::task_easy_dsd(void)
 {
 
-	task_easy_dsd();
-
-/*
-	static uint16_t i = 0;
-	dsd.buttonsBegin();
+	keyboard.beginAll();
 	//Logger logger(&dsd, 0, 0, 128, 128);
-	dsd.printStylePipboy();
-	dsd.tft.print("openDSD running...\n");
-	dsd.tft.updateScreen();
-*/
+	tft.printStylePipboy();
+	tft.print("easyDSD v0.0.2 running...\n");
+	tft.updateScreen();
+
+	play("sine-176400hz-1000hz-15s-D64-2.8mhz.dsf");
+	//play("04 - DAVID BOWIE - Ashes To Ashes.dsf");
+
 
 	while(true) {
 
 	}
 }
-
-
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
-{
-	if(hi2s == &hi2s2) {
-		// todo
-	}
-}
-
-
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
-{
-	if(hi2s == &hi2s2) {
-		// todo
-	}
-}
-
-
 
 /*
 //	dsd.tft.print("reading:\n");

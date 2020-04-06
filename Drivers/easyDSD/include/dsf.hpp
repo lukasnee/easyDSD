@@ -31,6 +31,8 @@ const uint8_t chunk_header_data[] = {'d', 'a', 't', 'a'};
 #define DSF_FMT_FORMAT_VERSION_1 1
 #define DSF_FMT_FORMAT_ID_RAW 0
 
+typedef uint64_t dsf_ptr_t;
+
 typedef uint32_t ch_type_t;
 
 typedef enum channel_type{
@@ -45,7 +47,6 @@ typedef enum channel_type{
 
 
 typedef uint32_t ch_num_t;
-typedef uint64_t dsf_ptr_t;
 
 typedef enum channel_num{
 	CHNUM_MONO = 1,

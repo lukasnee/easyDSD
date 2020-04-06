@@ -21,7 +21,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "fatfs.h"
-#include "../../Drivers/easyDSD/include/easyDSD.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -87,7 +86,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -115,10 +113,8 @@ int main(void)
   MX_I2S3_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  th_dsd_start();
+  easy_dsd_start_task();
   /* USER CODE END 2 */
- 
- 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -174,8 +170,8 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S|RCC_PERIPHCLK_RTC;
-  PeriphClkInitStruct.PLLI2S.PLLI2SN = 160;
-  PeriphClkInitStruct.PLLI2S.PLLI2SR = 7;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 180;
+  PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
   PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
@@ -200,10 +196,10 @@ static void MX_I2S2_Init(void)
   /* USER CODE END I2S2_Init 1 */
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_TX;
-  hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
+  hi2s2.Init.Standard = I2S_STANDARD_MSB;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s2.Init.AudioFreq = 44100;
+  hi2s2.Init.AudioFreq = 88200;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
   hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
   hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
@@ -234,10 +230,10 @@ static void MX_I2S3_Init(void)
   /* USER CODE END I2S3_Init 1 */
   hi2s3.Instance = SPI3;
   hi2s3.Init.Mode = I2S_MODE_MASTER_TX;
-  hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s3.Init.DataFormat = I2S_DATAFORMAT_32B;
+  hi2s3.Init.Standard = I2S_STANDARD_MSB;
+  hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B;
   hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s3.Init.AudioFreq = 44100;
+  hi2s3.Init.AudioFreq = 88200;
   hi2s3.Init.CPOL = I2S_CPOL_LOW;
   hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
   hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
@@ -305,7 +301,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
   hsd.Init.ClockDiv = 4;
   /* USER CODE BEGIN SDIO_Init 2 */
 
@@ -358,16 +354,16 @@ static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-  /* DMA1_Stream5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+  /* DMA1_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
   /* DMA2_Stream3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
@@ -397,36 +393,46 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, TFT_A0_Pin|TFT_RESET_Pin|TFT_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : TFT_A0_Pin TFT_RESET_Pin TFT_CS_Pin */
-  GPIO_InitStruct.Pin = TFT_A0_Pin|TFT_RESET_Pin|TFT_CS_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, DEBUG_0_Pin|DEBUG_1_Pin|DEBUG_2_Pin|DEBUG_3_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : PC0 PC1 PC2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BTN_DOWN_Pin BTN_OK_Pin BTN_UP_Pin */
-  GPIO_InitStruct.Pin = BTN_DOWN_Pin|BTN_OK_Pin|BTN_UP_Pin;
+  /*Configure GPIO pins : PA1 PA2 PA3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LED_D2_Pin */
-  GPIO_InitStruct.Pin = LED_D2_Pin;
+  /*Configure GPIO pin : PA6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_D2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SDIO_CD_Pin */
-  GPIO_InitStruct.Pin = SDIO_CD_Pin;
+  /*Configure GPIO pins : DEBUG_0_Pin DEBUG_1_Pin DEBUG_2_Pin DEBUG_3_Pin */
+  GPIO_InitStruct.Pin = DEBUG_0_Pin|DEBUG_1_Pin|DEBUG_2_Pin|DEBUG_3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SDIO_CD_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 }
 

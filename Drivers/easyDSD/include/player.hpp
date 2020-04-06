@@ -20,9 +20,12 @@
 
 #define MAX_TRACK_NAME_SIZE 100
 
+#include <cstring>
+
 #include "storage.hpp"
 #include "dsf.hpp"
 #include "stream.hpp"
+
 
 typedef enum p_state_{
 
@@ -48,7 +51,6 @@ public:
 	Player() :
 		stream(),
 		_state(P_STOPPED),
-		_trackIsActive(false),
 		_activeTrackName{ 0 }
 	{
 
@@ -56,7 +58,7 @@ public:
 
 	void play(const char * file_name)
 	{
-		if(!_trackIsActive && getState() == P_STOPPED) {
+		if(!stream.isBusy() && getState() == P_STOPPED) {
 
 			/*"2L-125_stereo-2822k-1b_04.dsf"*/
 			/*"03 - Roxy Music - Avalon.dsf"*/
@@ -71,30 +73,51 @@ public:
 				uint16_t blockSize = dsf.getBlockSizePerChannel();
 
 				stream.start(startPos, startPos, endPos, blockSize);
+				setState(P_PLAYING);
 
+				/* todo in os make it a stream task */
+				while(true) {
+
+					stream.routineIteration();
+				}
 			}
 		}
 	};
 
-	void stop(void)
+	bool stop(void)
 	{
-		if(_trackIsActive && getState() == P_PLAYING)
-			setState(P_STOPPING);
+		if(stream.isBusy() && getState() == P_PLAYING) {
+			if(stream.stop()) {
+				setState(P_STOPPING);
+				return true;
+			}
+		}
+		return false;
 	};
 
-	void pause(void)
+	bool pause(void)
 	{
-		if(_trackIsActive && getState() == P_PLAYING)
-			setState(P_PAUSING);
+		if(stream.isBusy() && getState() == P_PLAYING) {
+			if(stream.pause()) {
+				setState(P_PAUSING);
+				return true;
+			}
+		}
+		return false;
 	};
 
-	void resume(void)
+	bool resume(void)
 	{
-		if(_trackIsActive && getState() == P_PAUSED)
-			setState(P_RESUMING);
+		if(!stream.isBusy() && getState() == P_PAUSED) {
+			if(stream.resume()) {
+				setState(P_RESUMING);
+				return true;
+			}
+		}
+		return false;
 	};
 
-	uint32_t getElapsedPlayTime(void) const {
+	uint32_t getElapsedPlayTime(void) {
 
 		uint32_t elapsedTime = stream.getSampleDataPos();
 		elapsedTime = elapsedTime * 8 /
@@ -105,22 +128,21 @@ public:
 	}
 
 
-	auto & getTrackFileName(void) const { return _activeTrackName; }
-
+	const char * getTrackFileName(void) const { return _activeTrackName; }
 
 	void updateState(void) {
 
-		if(stream.isStandby()) {
+		if(!stream.isBusy()) {
 
-			if(getState() == P_STOPPING)
+			if(_state == P_STOPPING)
 				setState(P_STOPPED);
-			else if (getState() == P_PAUSING)
+			else if (_state == P_PAUSING)
 				setState(P_PAUSED);
 		}
-		if(stream.isActive()) {
+		if(stream.isBusy()) {
 
-			if(getState() == P_PREPARE_TO_PLAY ||
-					getState() == P_RESUMING)
+			if(_state== P_PREPARE_TO_PLAY ||
+					_state == P_RESUMING)
 				setState(P_PLAYING);
 		}
 	}
@@ -131,30 +153,22 @@ public:
 		return _state;
 	};
 
-
-	bool IsActive(void) const { return _trackIsActive; };
-
-
 private:
 
 	Stream stream;
 	DSF dsf;
 
 	p_state_e _state;
-	bool _trackIsActive;
 	char _activeTrackName[MAX_TRACK_NAME_SIZE];
 
 	void setState(p_state_e state) { _state = state; };
-	void SetTrackActive(void) { _trackIsActive = true; };
-	void SetTrackInactive(void) { _trackIsActive = false; };
-
 
 	bool readDSFheader(void) {
 
 		/* todo check if it is .dsf, if not, do not parse as dsf */
 		// parse dsf header
 		uint8_t * headerBlockRoughly = new uint8_t[100];
-		if(SD::read(headerBlockRoughly, sizeof(headerBlockRoughly)) != SD_OK)
+		if(SD::read(headerBlockRoughly, 100) != SD_OK)
 			return false;
 		if(!dsf.readHeader(headerBlockRoughly))
 			return false;

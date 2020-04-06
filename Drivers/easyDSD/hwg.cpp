@@ -26,8 +26,13 @@ extern "C" {
 }
 #endif
 
+DebugSignal DEBUG_SIG;
 SPI spi;
+I2S i2s;
 
+/************************************************/
+/*			Arduino-like Print class			*/
+/************************************************/
 void Print::printDebug(char * const buffer, uint32_t size) {
 
 	for(auto buff = buffer; buff != buffer + size; buff++) {
@@ -37,7 +42,6 @@ void Print::printDebug(char * const buffer, uint32_t size) {
 			case '\n': print("/");break;
 			default: write(*buff); break;
 		}
-
 	}
 }
 
@@ -80,6 +84,10 @@ const tft_pinout_stm32 tft_stm32_pinmap[] = {
 	{TFT_A0_GPIO_Port, TFT_A0_Pin}
 };
 
+/************************************************/
+/*						SPI						*/
+/************************************************/
+
 bool SPI::_dmaBusy = false;
 SPI_HandleTypeDef* SPI::_hspi = &hspi1;
 
@@ -118,5 +126,27 @@ boolean digitalRead(uint8_t pin) {
 	return HAL_GPIO_ReadPin(tft_stm32_pinmap[pin].GPIOx, tft_stm32_pinmap[pin].GPIO_Pin);
 
 }
+
+/************************************************/
+/*						I2S						*/
+/************************************************/
+
+i2s_state_e I2S::_state = {I2S_UNKNOWN};
+
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+	DEBUG_SIG.toggle(1);
+	I2S::_state = I2S_STREAMING_PONG;
+}
+
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+	DEBUG_SIG.toggle(2);
+	I2S::_state = I2S_STREAMING_PING;
+}
+
+/************************************************/
+/*					I2S END						*/
+/************************************************/
 
 

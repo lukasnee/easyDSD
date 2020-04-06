@@ -25,8 +25,6 @@ void Player::task_player(void) {
 
 		case P_STOPPED:
 
-			// TaskDelay(1);
-
 			break;
 
 		case P_PREPARE_TO_PLAY:
@@ -35,9 +33,6 @@ void Player::task_player(void) {
 			break;
 
 		case P_PLAYING:
-			// read sample block
-
-			stream.routine();
 
 			break;
 
@@ -54,9 +49,6 @@ void Player::task_player(void) {
 			break;
 
 		case P_STOPPING:
-			sd.close();
-			/* todo close file, stop DMA */
-			_trackIsActive = false;
 
 			break;
 

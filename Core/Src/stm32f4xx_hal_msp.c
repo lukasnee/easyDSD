@@ -181,7 +181,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* hi2s)
 
     /* I2S3 DMA Init */
     /* SPI3_TX Init */
-    hdma_spi3_tx.Instance = DMA1_Stream5;
+    hdma_spi3_tx.Instance = DMA1_Stream7;
     hdma_spi3_tx.Init.Channel = DMA_CHANNEL_0;
     hdma_spi3_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_spi3_tx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -201,6 +201,9 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* hi2s)
 
     __HAL_LINKDMA(hi2s,hdmatx,hdma_spi3_tx);
 
+    /* I2S3 interrupt Init */
+    HAL_NVIC_SetPriority(SPI3_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(SPI3_IRQn);
   /* USER CODE BEGIN SPI3_MspInit 1 */
 
   /* USER CODE END SPI3_MspInit 1 */
@@ -258,6 +261,9 @@ void HAL_I2S_MspDeInit(I2S_HandleTypeDef* hi2s)
 
     /* I2S3 DMA DeInit */
     HAL_DMA_DeInit(hi2s->hdmatx);
+
+    /* I2S3 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(SPI3_IRQn);
   /* USER CODE BEGIN SPI3_MspDeInit 1 */
 
   /* USER CODE END SPI3_MspDeInit 1 */
@@ -468,7 +474,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     PA5     ------> SPI1_SCK
     PA7     ------> SPI1_MOSI 
     */
-    GPIO_InitStruct.Pin = TFT_SCK_Pin|TFT_SDA_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -521,7 +527,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
     PA5     ------> SPI1_SCK
     PA7     ------> SPI1_MOSI 
     */
-    HAL_GPIO_DeInit(GPIOA, TFT_SCK_Pin|TFT_SDA_Pin);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_7);
 
     /* SPI1 DMA DeInit */
     HAL_DMA_DeInit(hspi->hdmatx);

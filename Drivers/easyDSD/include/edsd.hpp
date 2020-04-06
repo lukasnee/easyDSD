@@ -51,20 +51,29 @@ extern "C" {
 
 class easyDSD : public Player, private virtual SD {
 
-public:
-
-	//start easyDSD player with:
-	static void easy_dsd_start_task(void const * argument);
-
 private:
 
-	Keyboard 		kb;
+	Keyboard 		keyboard;
 	TFT_ILI9163C 	tft;
 
-	easyDSD() : kb(), tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) { };
+	easyDSD() : keyboard(), tft(TFT_PIN_CS, TFT_PIN_A0, TFT_PIN_RESET) { };
 
 	void task_easy_dsd(void);
 
+	friend void easy_dsd_start_task(void);
+
 };
+
+//osThreadId defaultTaskHandle;
+void easy_dsd_start_task(void) {
+
+//	osThreadDef(th_dsd, openDSD::th_dsd_task, osPriorityAboveNormal, 0, 3*1024);
+//	defaultTaskHandle = osThreadCreate(osThread(th_dsd), NULL);
+
+	static easyDSD edsd;
+
+	edsd.task_easy_dsd();
+
+}
 
 #endif  // EDSD_HPP_

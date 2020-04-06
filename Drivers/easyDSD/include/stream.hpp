@@ -55,33 +55,19 @@ typedef enum ping_pong_{
 
 }ping_pong_e;
 
-/* for buffer access */
-typedef enum pingpong_{ PP_PING, PP_PONG }pingpong_e;
-
-/* for buffer access, todo maybe more channels support ? */
-typedef enum channel_{
-	CH_LEFT,
-	CH_RIGHT,
-}channel_e;
-
-typedef uint8_t buff_block_ar[EDSD_MAX_BUF_SIZE];
-typedef uint8_t
-		buff_ping_pong_2ar[EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
-typedef uint8_t
-		buff_stream_3ar[EDSD_MAX_CHANNELS][EDSD_PING_PONG][EDSD_MAX_BUF_SIZE];
-
-class Stream : private virtual SD, private virtual I2S_DMA {
+class Stream : private virtual SD {
 
 public:
 
-	/* HARDWARE SETUP */
-
-	/* Triggers from hardware DMA for letting
-	streamer know if data block succeeded streaming */
-	void alertPingBuffFinishedStreaming(void);
-	void alertPongBuffFinishedStreaming(void);
-
 	/* INTERFACE.*/
+
+	/* TEMPORARY: routine workaround because no OS task todo */
+	void routineIteration(void) {
+		DEBUG_SIG.set(0);
+		routine();
+		DEBUG_SIG.reset(0);
+	}
+
 
 	// note.file must already be opened in FAT file-system.
 	bool start(uint64_t streamStartPos, uint64_t streamPos,
@@ -91,8 +77,7 @@ public:
 	bool resume(void);
 
 	/* useful streamer state identifiers */
-	bool isStandby(void);
-	bool isActive(void);
+	bool isBusy(void);
 
 	/* streamer sample data read pointer position managing methods */
 
@@ -110,28 +95,12 @@ public:
 		_blockSize(0),
 		_state(STREAM_STANDBY),
 		_statePrev(STREAM_STANDBY),
-		_arStreamBuffer{ 0xAA }
+		_last_i2s_state(I2S_UNKNOWN)
 	{
 
 	};
 
 private:
-
-	/* Main _arStreamBuffer segmented interface with
-	 * Read/Write or Read-Only access and boundary protection */
-
-	/* full buffer access */
-	buff_stream_3ar * 			bufferRW(void);
-	buff_stream_3ar const * 	bufferR(void);
-
-	/* PingPong access */
-	buff_ping_pong_2ar * 		bufferChannelRW(channel_e ch);
-	buff_ping_pong_2ar const * 	bufferChannelR(channel_e ch);
-
-	/* individual block access */
-	buff_block_ar * 			bufferBlockRW(channel_e ch, pingpong_e pp);
-	buff_block_ar const * 		bufferBlockR(channel_e ch, pingpong_e pp);
-
 
 	/* stream state */
 	bool pingIsStreamingPongIsReading(void);
@@ -141,7 +110,8 @@ private:
 	ping_pong_e getState(void);
 	void setState(ping_pong_e state);
 	void flipActiveState(void);
-	bool stateHasChanged(void);
+	bool hardwareStateChanged(void);
+	bool stateChanged(void);
 
 	/* start routine on given parameters */
 	bool startStream(void);
@@ -149,7 +119,10 @@ private:
 	void routine(void);
 	/* stream escape routine */
 	bool endStream(void);
-	/* for tracking position within streamer. Not for user. */
+
+	/* validate stream read */
+	bool validateRead(uint16_t expectedBytes);
+	/* f11or tracking position within streamer. Not for user. */
 	void trackSampleDataPosPtr(uint64_t step);
 
 	/* NOTE. all stream psitions interpreted in width of bytes.
@@ -160,12 +133,11 @@ private:
 	uint16_t _blockSize;
 
 	/* streamer dataflow state */
-	ping_pong_e _state;
-	ping_pong_e _statePrev; // for triggering a change
+	ping_pong_e _state, _statePrev;
 
-	/* THIS TAKES A LOT OF RAM, 16kB default,
-	memory field must be DMA enabled */
-	buff_stream_3ar _arStreamBuffer;
+	/* trigger for letting Stream object know which
+	 * data block is streaming at the moment */
+	i2s_state_e _last_i2s_state;
 
 };
 

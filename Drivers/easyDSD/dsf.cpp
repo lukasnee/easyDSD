@@ -31,6 +31,7 @@
 
 /* little endian */
 #define PARSE_READ(dst, type) dst = *(type*)pMem; pMem+=sizeof(type)
+#define PARSE_CAST_READ(dst, type, castType) dst = *(castType*)(type*)pMem; pMem+=sizeof(type)
 #define PARSE_READ_BUFF(pDestination, length) \
 	memcpy(pDestination, pMem, length); pMem+=length
 
@@ -81,10 +82,10 @@ bool DSF::readHeader(uint8_t const * buff) {
 	VALIDATE(DSF_FMT_FORMAT_ID_RAW, uint32_t); // raw - the one and only, lol
 	PARSE_READ(formatId, uint32_t);
 
-	PARSE_READ(channelType,ch_type_e);
+	PARSE_CAST_READ(channelType, ch_type_t, ch_type_e);
 	VALIDATE_BETWEEN(channelType, CHT_MONO, CHT_5_1_CHANNELS);
 
-	PARSE_READ(channelNum, ch_num_e);
+	PARSE_CAST_READ(channelNum, ch_num_t, ch_num_e);
 	VALIDATE_BETWEEN(channelNum, CHNUM_MONO, CHNUM_6);
 
 	PARSE_READ(samplingFreq, uint32_t);

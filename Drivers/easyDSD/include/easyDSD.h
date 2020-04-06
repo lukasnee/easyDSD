@@ -27,33 +27,7 @@ extern "C" {
 
 /* USER CONFIGURATIONS */
 
-/* 2 for stereo, etc. NOTE.
- * NOTE. currently only stereo supported !
- * */
-#define EDSD_MAX_CHANNELS 2
-
-/* Max buffer size in bytes for each channel. Should be matched
- * with SD card read block size for optimal performance.
- * NOTE. Defined size eventually will be doubled because of
- * ping-pong buffer stream method and multpilied for every channel.
- * See TOTAL_BUFFER_SIZE calculated expression for exact size.
- * */
-#define EDSD_MAX_BUF_SIZE 4096
-
-/* USER CONFIGURATIONS END */
-
-
-
-
-#define EDSD_PING_PONG 2
-#define EDSD_MAX_PINGPONG_BUF_SIZE (EDSD_MAX_BUF_SIZE * EDSD_PING_PONG)
-#define EDSD_PING_BUF_SIZE (EDSD_MAX_PINGPONG_BUF_SIZE / 2)
-#define EDSD_PONG_BUF_SIZE (EDSD_MAX_PINGPONG_BUF_SIZE / 2)
-
-/* Total space used in RAM for DSD streaming. [in bytes] */
-#define TOTAL_BUFFER_SIZE (EDSD_PINGPONG_BUF_SIZE * EDSD_MAX_CHANNELS)
-
-void th_dsd_start(void); /* start easyDSD externally from c source */
+void easy_dsd_start_task(void); /* start easyDSD externally from c source */
 
 #ifdef __cplusplus
 }

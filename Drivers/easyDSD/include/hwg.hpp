@@ -27,9 +27,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi);
-
+	void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi);
+	void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
+	void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
 #ifdef __cplusplus
 }
 #endif
@@ -45,9 +45,6 @@ typedef bool boolean;
 
 extern I2S_HandleTypeDef hi2s2;
 extern I2S_HandleTypeDef hi2s3;
-extern void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
-extern void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
-
 
 extern DMA_HandleTypeDef hdma_spi2_tx;
 extern DMA_HandleTypeDef hdma_spi3_tx;
@@ -56,12 +53,9 @@ extern SD_HandleTypeDef hsd;
 extern SPI_HandleTypeDef hspi1;
 extern DMA_HandleTypeDef hdma_spi1_tx;
 
-
-
-
-//typedef std::string String;
-typedef char const * String;
-typedef char const * __FlashStringHelper;
+/*==============================================================*/
+/*								SPI								*/
+/*==============================================================*/
 
 typedef struct tft_pinout_stm32_{
 
@@ -79,21 +73,6 @@ typedef enum tft_pinout_id_{
 	TFT_PIN_A0,
 
 }tft_pinout_id;
-
-/* Arduino workaround to work with AdafruitGFX */
-
-class Print {
-public:
-	virtual size_t write(unsigned char c) = 0;
-	void printDebug(char * const buffer, uint32_t size);
-	void print(unsigned char c);
-	void print(String str);
-	void println(String str = "\0");
-	void print(const float value);
-	void println(const float value);
-};
-
-/* SPI workaround */
 
 typedef enum dc_mode_{
 	DC_DATA, DC_COMMAND
@@ -118,39 +97,87 @@ private:
 
 extern SPI spi;
 
-// hardware DMA I2S application program interface
-class I2S_DMA {
+/*==============================================================*/
+/*								I2S								*/
+/*==============================================================*/
 
-	void startCircularStreamOnHardware(channel_e channel, uint8_t const * fliflopBuff, uint16_t size) {
+/* Max buffer size in bytes for each channel. Should be matched
+ * with SD card read block size for optimal performance.
+ * NOTE. Defined size eventually will be doubled because of
+ * ping-pong buffer stream method and multpilied for every channel.
+ * See TOTAL_BUFFER_SIZE calculated expression for exact size.
+ * */
+#define I2S_MAX_BUF_SIZE 4096
+/* 2 for stereo, etc. NOTE.
+ * NOTE. currently only stereo supported !
+ * */
+#define I2S_MAX_CHANNELS 2
 
-		switch(channel) {
+/* USER CONFIGURATIONS END */
 
-		case  CH_LEFT:
-			HAL_I2S_Transmit_DMA(&hi2s2, reinterpret_cast<uint16_t *>(fliflopBuff), size/sizeof(uint16_t));
-			break;
+#define I2S_PING_PONG 2
+#define I2S_MAX_PINGPONG_BUF_SIZE (I2S_MAX_BUF_SIZE * I2S_PING_PONG)
+#define I2S_PING_BUF_SIZE (I2S_MAX_PINGPONG_BUF_SIZE / 2)
+#define I2S_PONG_BUF_SIZE (I2S_MAX_PINGPONG_BUF_SIZE / 2)
 
-		case CH_RIGHT:
-			HAL_I2S_Transmit_DMA(&hi2s3, reinterpret_cast<uint16_t *>(fliflopBuff), size/sizeof(uint16_t));
-			break;
+/* Total space used in RAM for DSD streaming. [in bytes] */
+#define I2S_TOTAL_BUFFER_SIZE (EDSD_PINGPONG_BUF_SIZE * I2S_MAX_CHANNELS)
+
+/* for buffer access */
+typedef enum pingpong_{ PP_PING, PP_PONG }pingpong_e;
+/* for buffer access, todo maybe more channels support ? */
+typedef enum channel_{CH_LEFT, CH_RIGHT}channel_e;
+/* DMA buffer (memory field must be available by hardware DMA)
+ * NOTE. THIS TAKES A LOT OF RAM, 16kB default*/
+typedef uint8_t buff_stream_3ar[I2S_PING_PONG][I2S_MAX_BUF_SIZE];
+
+typedef enum dma_state_{
+
+	I2S_STREAMING_PING,
+	I2S_STREAMING_PONG,
+	I2S_UNKNOWN
+
+}i2s_state_e;
+
+// Two channel DMA enabled hardware I2S
+class I2S {
+	/*todo make so that user can change block size
+			so they would align, currently fixed max size is aligned.*/
+public:
+
+	class ChannelBuffer {
+	public:
+
+		void stopCircularDMA(void) { HAL_I2S_DMAStop(&hi2s2); }
+		void startCircularDMA(uint16_t channelBlockSize) {
+			HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)(_buffer), channelBlockSize);
 		}
-	}
 
-	void stopCircularStreamOnHardware(channel_e channel) {
+		uint8_t * getBufferPing(void) { return _buffer[PP_PING]; }
+		uint8_t * getBufferPong(void) { return _buffer[PP_PONG]; }
+		uint16_t getSplitSize(void) { return sizeof(_buffer[PP_PING]); }
+	private:
 
-		switch(channel) {
+		buff_stream_3ar _buffer;
+	} left, right;
 
-		case  CH_LEFT:
-			HAL_I2S_DMAStop(&hi2s2);
-			break;
+	static i2s_state_e getState(void) { return _state; }
 
-		case CH_RIGHT:
-			HAL_I2S_DMAStop(&hi2s3);
-			break;
-		}
-	}
+private:
+
+	static i2s_state_e _state;
+
+	friend void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
+	friend void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
+
 };
 
-/* Arduino naming work-around */
+extern I2S i2s;
+
+/*==============================================================*/
+/*							Arduino API							*/
+/*==============================================================*/
+
 
 #define pinMode(pin, mode)  /* todo: does nothing, for now its enough. */
 #define millis() HAL_GetTick()
@@ -158,7 +185,67 @@ class I2S_DMA {
 #define bitSet(byte, bit) byte |= (1 << bit)
 #define delay(ms) HAL_Delay(ms)
 
+//typedef std::string String;
+typedef char const * String;
+typedef char const * __FlashStringHelper;
+
+/* Arduino workaround to work with AdafruitGFX */
+
+class Print {
+public:
+	virtual size_t write(unsigned char c) = 0;
+	void printDebug(char * const buffer, uint32_t size);
+	void print(unsigned char c);
+	void print(String str);
+	void println(String str = "\0");
+	void print(const float value);
+	void println(const float value);
+};
+
 void digitalWrite(uint8_t pin, boolean state);
 boolean digitalRead(uint8_t pin);
+
+/*==============================================================*/
+/*							DEBUG								*/
+/*==============================================================*/
+
+class DebugSignal {
+
+	const tft_pinout_stm32 debug_stm32_pinmap[4] = {
+		{DEBUG_0_GPIO_Port, DEBUG_0_Pin},
+		{DEBUG_1_GPIO_Port, DEBUG_1_Pin},
+		{DEBUG_2_GPIO_Port, DEBUG_2_Pin},
+		{DEBUG_3_GPIO_Port, DEBUG_3_Pin}
+	};
+
+public:
+
+	inline void resetAll(void) {
+		for(int pin = 0; pin < 4; pin++)
+			HAL_GPIO_WritePin(
+				debug_stm32_pinmap[pin].GPIOx,
+				debug_stm32_pinmap[pin].GPIO_Pin,
+				GPIO_PIN_RESET);
+	};
+	inline void reset(uint8_t pin) {
+		HAL_GPIO_WritePin(
+				debug_stm32_pinmap[pin].GPIOx,
+				debug_stm32_pinmap[pin].GPIO_Pin,
+				GPIO_PIN_RESET);
+	};
+	inline void set(uint8_t pin) {
+		HAL_GPIO_WritePin(
+				debug_stm32_pinmap[pin].GPIOx,
+				debug_stm32_pinmap[pin].GPIO_Pin,
+				GPIO_PIN_SET);
+	};
+	inline void toggle(uint8_t pin) {
+		HAL_GPIO_TogglePin(
+				debug_stm32_pinmap[pin].GPIOx,
+				debug_stm32_pinmap[pin].GPIO_Pin);
+	};
+};
+
+extern DebugSignal DEBUG_SIG;
 
 #endif  // DSD_HWG_H_

@@ -30,6 +30,8 @@ typedef enum button_map_{
 
 	class Keyboard{
 
+	public:
+
 		void updateAll(void)
 		{
 			for(uint8_t i = 0; i < BTN_COUNT; i++)

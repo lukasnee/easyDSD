@@ -32,7 +32,7 @@ bool Stream::start(
 {
 
 	if(streamStartPos < streamEndPos &&
-			blockSize && blockSize <= EDSD_MAX_BUF_SIZE) {
+			blockSize && blockSize <= I2S_MAX_BUF_SIZE) {
 
 		_streamStartPos = streamStartPos;
 		_streamEndPos = streamEndPos;
@@ -78,51 +78,8 @@ bool Stream::resume(void) {
 
 /* streamer state identifiers */
 
-bool Stream::isStandby(void) {
-	return _state == STREAM_STANDBY;
-}
-
-bool Stream::isActive(void) {
+bool Stream::isBusy(void) {
 	return ((_state != STREAM_STANDBY) && (_state != STREAM_PAUSED));
-}
-
-/* full buffer access */
-buff_stream_3ar* Stream::bufferRW(void) {
-	return reinterpret_cast<buff_stream_3ar*>(_arStreamBuffer);
-}
-
-buff_stream_3ar const * Stream::bufferR(void) {
-	return bufferRW();
-}
-
-/* PingPong access */
-buff_ping_pong_2ar* Stream::bufferChannelRW(channel_e ch) {
-	return ((ch < EDSD_MAX_CHANNELS) ?
-			reinterpret_cast<buff_ping_pong_2ar*>(_arStreamBuffer[ch]) : NULL);
-}
-
-buff_ping_pong_2ar const * Stream::bufferChannelR(channel_e ch) {
-	return bufferChannelRW(ch);
-}
-
-/* individual block access */
-buff_block_ar* Stream::bufferBlockRW(channel_e ch, pingpong_e pp) { return ((pp < 2) ?
-			reinterpret_cast<buff_block_ar*>(bufferChannelRW(ch)[pp]) : NULL);
-}
-
-buff_block_ar const * Stream::bufferBlockR(channel_e ch, pingpong_e pp) {
-	return bufferBlockRW(ch, pp);
-}
-
-/* triggers for letting streamer know if
- * data block succeeded streaming via DMA */
-
-void Stream::alertPingBuffFinishedStreaming(void) {
-	_state = STREAM_PING_READ_PONG_STREAM;
-}
-
-void Stream::alertPongBuffFinishedStreaming(void) {
-	_state = STREAM_PING_STREAM_PONG_READ;
 }
 
 /* for moving position relative to start of sample data
@@ -179,7 +136,35 @@ void Stream::flipActiveState(void) {
 	STREAM_PING_READ_PONG_STREAM);
 }
 
-bool Stream::stateHasChanged(void) {
+bool Stream::hardwareStateChanged(void) {
+
+	// check only one of the channels because all should always be in sync anyways...
+
+	i2s_state_e state = i2s.getState();
+	if(_last_i2s_state != state) {
+		_last_i2s_state = state;
+
+		switch(state) {
+
+		case I2S_STREAMING_PING:
+			_state = STREAM_PING_STREAM_PONG_READ;
+			break;
+		case I2S_STREAMING_PONG:
+			_state = STREAM_PING_READ_PONG_STREAM;
+			break;
+		default:
+			_state = STREAM_STANDBY;
+			break;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool Stream::stateChanged(void) {
+
+	hardwareStateChanged();
+
 	if(_state != _statePrev) {
 		_statePrev = _state;
 		return true;
@@ -189,23 +174,38 @@ bool Stream::stateHasChanged(void) {
 
 bool Stream::startStream(void) {
 
-	if(moveStreamPos(_streamPos)) {
+	if(moveStreamPos(_streamStartPos)) {
 
-		/* todo DMA start !!! */
-		setState(STREAM_PING_READ_PONG_STANDBY);
-		routine();	/* todo start routine task in os */
+		setState(STREAM_PING_READ_PONG_STREAM);
+
+		i2s.left.startCircularDMA(_blockSize);
+		i2s.right.startCircularDMA(_blockSize);
+
+		/* todo start routine task in os here */
 		return true;
 	}
 	return false;
 }
 
+inline bool Stream::validateRead(uint16_t expectedBytes) {
+/*
+	if(SD::getBytesRead() == expectedBytes) {
+		trackSampleDataPosPtr(expectedBytes);
+		return true;
+	}
+
+	else {
+		endStream();
+		return false;
+	}
+*/
+	return true;
+}
+
 /* streaming routine, should be continuously active (todo fit in a os task) */
 void Stream::routine(void) {
 
-	// while(true) { // todo when ported to OS
-	// osDelay(1);
-
-	if(stateHasChanged()) {
+	if(stateChanged()) {
 
 		if(_streamPos > _streamEndPos)
 			endStream();
@@ -214,27 +214,26 @@ void Stream::routine(void) {
 
 			case STREAM_STANDBY:
 			case STREAM_PAUSED:
-				stopCircularStreamOnHardware(CH_LEFT);
-				stopCircularStreamOnHardware(CH_RIGHT);
+				i2s.left.stopCircularDMA();
+				i2s.right.stopCircularDMA();
 				break;
 
 			case STREAM_PING_STREAM_PONG_READ:
-				SD::read(bufferBlockRW(CH_LEFT, PP_PONG), _blockSize);
-				trackSampleDataPosPtr(SD::getBytesRead());
-				SD::read(bufferBlockRW(CH_RIGHT, PP_PONG), _blockSize);
-				trackSampleDataPosPtr(SD::getBytesRead());
+				SD::read(i2s.left.getBufferPing(), i2s.left.getSplitSize());
+				if(!validateRead(i2s.left.getSplitSize())) break;
+
+				SD::read(i2s.right.getBufferPing(), i2s.right.getSplitSize());
+				if(!validateRead(i2s.right.getSplitSize())) break;
 				break;
 
-			case STREAM_PING_READ_PONG_STANDBY: // stream just started state
 			case STREAM_PING_READ_PONG_STREAM:
-				SD::read(bufferBlockRW(CH_LEFT, PP_PING), _blockSize);
-				trackSampleDataPosPtr(SD::getBytesRead());
-				SD::read(bufferBlockRW(CH_RIGHT, PP_PING), _blockSize);
-				trackSampleDataPosPtr(SD::getBytesRead());
-				if(getState() == STREAM_PING_READ_PONG_STANDBY) {
-					startCircularStreamOnHardware(CH_LEFT, (uint8_t const *)bufferChannelR(CH_LEFT), _blockSize*2);
-					startCircularStreamOnHardware(CH_RIGHT, (uint8_t const *)bufferChannelR(CH_RIGHT), _blockSize*2);
-				}
+
+				SD::read(i2s.left.getBufferPong(), i2s.left.getSplitSize());
+				if(!validateRead(i2s.left.getSplitSize())) break;
+
+				SD::read(i2s.right.getBufferPong(), i2s.right.getSplitSize());
+				if(!validateRead(i2s.right.getSplitSize())) break;
+
 				break;
 
 			case STREAM_PING_HALT_PONG_STREAM: break;
@@ -242,13 +241,13 @@ void Stream::routine(void) {
 
 		}
 	}
-//}
 }
 
 /* stream escape */
 bool Stream::endStream(void) {
 
 	_streamStartPos = _streamPos = _streamEndPos = _blockSize = 0;
+	_last_i2s_state = I2S_UNKNOWN;
 	_state = _statePrev = STREAM_STANDBY;
 
 	/* todo all channel DMA STOP */
