@@ -43,9 +43,6 @@ typedef bool boolean;
 
 /* for accessing STM32cubeMx generated handlers */
 
-extern I2S_HandleTypeDef hi2s2;
-extern I2S_HandleTypeDef hi2s3;
-
 extern DMA_HandleTypeDef hdma_spi2_tx;
 extern DMA_HandleTypeDef hdma_spi3_tx;
 extern RTC_HandleTypeDef hrtc;
@@ -101,6 +98,10 @@ extern SPI spi;
 /*								I2S								*/
 /*==============================================================*/
 
+
+extern I2S_HandleTypeDef hi2s2;
+extern I2S_HandleTypeDef hi2s3;
+
 /* Max buffer size in bytes for each channel. Should be matched
  * with SD card read block size for optimal performance.
  * NOTE. Defined size eventually will be doubled because of
@@ -147,21 +148,29 @@ public:
 
 	class ChannelBuffer {
 	public:
-
-		void stopCircularDMA(void) { HAL_I2S_DMAStop(&hi2s2); }
-		void startCircularDMA(uint16_t channelBlockSize) {
-			HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)(_buffer), channelBlockSize);
-		}
-
+		uint8_t * getBuffer(void) { return _buffer[PP_PING]; }
 		uint8_t * getBufferPing(void) { return _buffer[PP_PING]; }
 		uint8_t * getBufferPong(void) { return _buffer[PP_PONG]; }
 		uint16_t getSplitSize(void) { return sizeof(_buffer[PP_PING]); }
 	private:
-
 		buff_stream_3ar _buffer;
-	} left, right;
+	}left, right;
 
-	static i2s_state_e getState(void) { return _state; }
+	bool stopCircularDMA(void) {
+		if(HAL_I2S_DMAStop(&hi2s2) == HAL_OK/* &&
+			HAL_I2S_DMAStop(&hi2s3) == HAL_OK*/)
+			return true;
+		return false;
+	}
+
+	bool startCircularDMA(uint16_t channelBlockSize) {
+		if(HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)(left.getBuffer()), channelBlockSize) == HAL_OK/* &&
+			HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)(right.getBuffer()), channelBlockSize) == HAL_OK*/)
+			return true;
+		return false;
+	}
+
+	i2s_state_e getState(void) { return _state; }
 
 private:
 

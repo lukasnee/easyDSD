@@ -56,12 +56,16 @@ public:
 
 	};
 
+	/* TEMPORARY: routine workaround because no OS task todo */
+	void playRoutine(void) {
+		DEBUG_SIG.set(0);
+		stream.routine();
+		DEBUG_SIG.reset(0);
+	}
+
 	void play(const char * file_name)
 	{
 		if(!stream.isBusy() && getState() == P_STOPPED) {
-
-			/*"2L-125_stereo-2822k-1b_04.dsf"*/
-			/*"03 - Roxy Music - Avalon.dsf"*/
 
 			// open .dsf file, read first block for header
 			if(SD::open(file_name,  SD_READ) == SD_OK && readDSFheader()) {
@@ -77,8 +81,7 @@ public:
 
 				/* todo in os make it a stream task */
 				while(true) {
-
-					stream.routineIteration();
+					playRoutine();
 				}
 			}
 		}
@@ -119,7 +122,7 @@ public:
 
 	uint32_t getElapsedPlayTime(void) {
 
-		uint32_t elapsedTime = stream.getSampleDataPos();
+		uint32_t elapsedTime = stream.getStreamPointer();
 		elapsedTime = elapsedTime * 8 /
 				dsf.getChannelNum() / dsf.getBitsPerSample() /
 				dsf.getSamplingFreq();

@@ -82,10 +82,7 @@ SD_RESULT SD::unmount(void) {
 	FR_TRY(f_mount(&SDFatFS, static_cast<TCHAR const*>(NULL), 0));
 	FR_END_R
 }
-SD_RESULT SD::open(
-	const char * path,
-	SD_MODE mode
-)
+SD_RESULT SD::open(const char * path, SD_MODE mode)
 {
 	FR_BEGIN
 	FR_TRY(f_open(&SDFile, path, mode));
@@ -96,40 +93,34 @@ SD_RESULT SD::close(void) {
 	FR_TRY(f_close(&SDFile));
 	FR_END_R
 }
-SD_RESULT SD::write(
-	const void* buff,		/* Pointer to the data to be written */
-	unsigned int bytesToWrite	/* Number of bytes to write */
-)
+/* buff[in] - pointer from where to write data */
+SD_RESULT SD::write(const void* buff, unsigned int bytesToWrite)
 {
 	FR_BEGIN
 	FR_TRY(f_write(&SDFile, buff, bytesToWrite, &_bytesWritten));
-	advanceSeekPosBy(_bytesWritten);
 	FR_END_R
 }
-SD_RESULT SD::read(
-	void* buff,				/* Pointer to data buffer */
-	unsigned int bytesToRead	/* Number of bytes to read */
-)
+/* buff[out] - pointer where to read in data */
+SD_RESULT SD::read(void* buff, unsigned int bytesToRead)
 {
 	FR_BEGIN
 	FR_TRY(f_read(&SDFile, buff, bytesToRead, &_bytesRead));
-	advanceSeekPosBy(_bytesRead);
 	FR_END_R
 }
 
-SD_RESULT SD::lseek(
-	unsigned int offset
-)
+SD_RESULT SD::lseek(unsigned int offset)
 {
 	FR_BEGIN
-	advanceSeekPosBy(offset);
-	FR_TRY(f_lseek(&SDFile, getSeekPos()));
+	FR_TRY(f_lseek(&SDFile, tell() + offset));
 	FR_END_R
 }
 
-SD_RESULT SD::getSDPath(
-		char const * path
-)
+unsigned long SD::tell(void)
+{
+	return f_tell(&SDFile);
+}
+
+SD_RESULT SD::getSDPath(char const * path)
 {
 	FR_BEGIN
 		path = SDPath;

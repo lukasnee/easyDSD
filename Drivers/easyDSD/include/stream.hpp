@@ -36,24 +36,14 @@ TODO:
 	- add support for multi-bit DSD (maybe)
 */
 
-typedef enum ping_pong_{
+typedef enum stream_state_{
 
-	// Stop state
-	STREAM_STANDBY,			// PingPong buffer totally in standby mode.
-	STREAM_PAUSED,
+	SS_STANDBY,
+	SS_PAUSED,
+	SS_STREAMING_PING, // While ping buffer gets streamed, new following data reads into pong buffer.
+	SS_STREAMING_PONG, // mirror process
 
-	// Starting state
-	STREAM_PING_READ_PONG_STANDBY,  // starting to fill Ping buffer, no streaming at this state.
-
-	// Active states - continuous dataflow. Two flipping states.
-	STREAM_PING_STREAM_PONG_READ, 	// Ping start to be streamed, while Pong reads in data.
-	STREAM_PING_READ_PONG_STREAM,	// Process flips: Ping reads data in, while Pong streams.
-
-	// Stopping states - which of two depends on the active bi-state.
-	STREAM_PING_HALT_PONG_STREAM,	// this if stopped on PP_PI_READ_PO_STREAM active state.
-	STREAM_PING_STREAM_PONG_HALT,	// this if stopped on PP_PI_STREAM_PO_READ active state.
-
-}ping_pong_e;
+}stream_state_e;
 
 class Stream : private virtual SD {
 
@@ -61,67 +51,49 @@ public:
 
 	/* INTERFACE.*/
 
-	/* TEMPORARY: routine workaround because no OS task todo */
-	void routineIteration(void) {
-		DEBUG_SIG.set(0);
-		routine();
-		DEBUG_SIG.reset(0);
-	}
-
-
-	// note.file must already be opened in FAT file-system.
+	/* starts streaming on given parameters
+	 * note. file must already be opened in FAT file-system. */
 	bool start(uint64_t streamStartPos, uint64_t streamPos,
 			uint64_t streamEndPos, uint16_t blockSize);
-	bool stop(void);
+	/* just stops streaming */
 	bool pause(void);
+	/* simply continues streaming */
 	bool resume(void);
-
+	/* stops streaming, forgets state, closes SD file */
+	bool stop(void);
+	/* returns current stream position bytewise */
+	uint64_t getStreamPointer(void);
 	/* useful streamer state identifiers */
 	bool isBusy(void);
-
-	/* streamer sample data read pointer position managing methods */
-
-	/* for moving position relative to start of sample data
-	 * NOTE. position is interpreted in width of bytes. */
-	bool moveStreamPos(uint64_t position);
-	/* for moving stream pointer relative to current position. */
-	bool advanceStreamPos(uint64_t step);
-	uint64_t getSampleDataPos(void);
+	/* for moving position relative to start of sample data */
+	bool moveStreamPointer(uint64_t bytewisePosition);
+	/* for fast forward, etc. Step relative to current position. */
+	bool advanceStreamPointer(uint64_t bytewiseStep);
 
 	Stream(void) :
 		_streamStartPos(0),
 		_streamPos(0),
 		_streamEndPos(0),
 		_blockSize(0),
-		_state(STREAM_STANDBY),
-		_statePrev(STREAM_STANDBY),
-		_last_i2s_state(I2S_UNKNOWN)
+		_state(SS_STANDBY),
+		_prevState(SS_STANDBY)
 	{
 
 	};
 
+	/* streaming routine, should be continuously active (todo fit in a os task) */
+	bool routine(void); /* returns if stream state changed */
+
 private:
 
-	/* stream state */
-	bool pingIsStreamingPongIsReading(void);
-	bool pingIsReadingPongIsStreaming(void);
-	bool isStarting(void);
-	bool isStopping(void);
-	ping_pong_e getState(void);
-	void setState(ping_pong_e state);
-	void flipActiveState(void);
-	bool hardwareStateChanged(void);
-	bool stateChanged(void);
-
-	/* start routine on given parameters */
-	bool startStream(void);
-	/* streaming routine, should be continuously active (todo fit in a os task) */
-	void routine(void);
-	/* stream escape routine */
-	bool endStream(void);
-
+	stream_state_e getState(void) { return _state; };
+	/* returns true if state changed */
+	bool updateState(void);
+	/* Read new data to half buffers from SD storage */
+	bool readNewPingData(void);
+	bool readNewPongData(void);
 	/* validate stream read */
-	bool validateRead(uint16_t expectedBytes);
+	bool validateRead(uint16_t expectedByteNum);
 	/* f11or tracking position within streamer. Not for user. */
 	void trackSampleDataPosPtr(uint64_t step);
 
@@ -131,13 +103,8 @@ private:
 	uint64_t _streamPos;
 	uint64_t _streamEndPos;
 	uint16_t _blockSize;
-
 	/* streamer dataflow state */
-	ping_pong_e _state, _statePrev;
-
-	/* trigger for letting Stream object know which
-	 * data block is streaming at the moment */
-	i2s_state_e _last_i2s_state;
+	stream_state_e _state, _prevState;
 
 };
 

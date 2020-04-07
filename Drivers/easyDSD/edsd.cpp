@@ -38,7 +38,8 @@ void easyDSD::task_easy_dsd(void)
 
 	play("sine-176400hz-1000hz-15s-D64-2.8mhz.dsf");
 	//play("04 - DAVID BOWIE - Ashes To Ashes.dsf");
-
+	//play("2L-125_stereo-2822k-1b_04.dsf");
+	//play("03 - Roxy Music - Avalon.dsf");
 
 	while(true) {
 

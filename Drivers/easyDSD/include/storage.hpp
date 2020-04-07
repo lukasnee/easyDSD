@@ -72,7 +72,7 @@ class SD {
 
 public:
 
-	SD(void) : _seekPos(0), _bytesRead(0), _bytesWritten(0)
+	SD(void) : _bytesRead(0), _bytesWritten(0)
 	{
 		mount();
 	};
@@ -87,21 +87,19 @@ public:
 				read(void* buff, unsigned int bytesToRead),
 				lseek(unsigned int offset),
 				getSDPath(char const * path);
+
+	unsigned long tell(void);
+
 				//scanFiles(char const * path);
 
-	unsigned int 	getBytesRead(void) { return _bytesRead; };
-	unsigned int 	getBytesWritten(void) { return _bytesWritten; };
-	unsigned int 	getSeekPos(void) { return _seekPos; };
-
-	void 		setSeekPos(unsigned int position) { _seekPos = position; };
-	void 		advanceSeekPosBy(unsigned int step) { _seekPos += step; }
+	unsigned int getBytesRead(void) { return _bytesRead; };
+	unsigned int getBytesWritten(void) { return _bytesWritten; };
 
 protected:
 private:
 
-	unsigned int _seekPos;
 	unsigned int _bytesRead;	/* Pointer to number of bytes read */
-	unsigned int _bytesWritten;			/* Pointer to number of bytes written */
+	unsigned int _bytesWritten;	/* Pointer to number of bytes written */
 };
 
 #endif  // SDs_HPP_
