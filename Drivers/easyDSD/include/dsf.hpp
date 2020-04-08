@@ -72,9 +72,9 @@ public:
 	uint64_t getSampleDataSize(void) const { return sampleDataSize;}
 	uint64_t getSampleDataP(void) const { return pSampleData;}
 
-	// in seconds
+	// in milliseconds
 	uint32_t getTotalPlayTime(void) const {
-			return static_cast<uint32_t>(getSampleDataSize() * 8 /
+			return static_cast<uint32_t>(1000 * getSampleDataSize() * 8 /
 			getChannelNum() / getBitsPerSample() /
 			getSamplingFreq());
 	}

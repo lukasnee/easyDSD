@@ -51,16 +51,17 @@ public:
 	Player() :
 		stream(),
 		_state(P_STOPPED),
-		_activeTrackName{ 0 }
+		_activeTrackName{ 0 },
+		_activeTrackPlayTime(0)
 	{
 
 	};
 
 	/* TEMPORARY: routine workaround because no OS task todo */
 	void playRoutine(void) {
-		DEBUG_SIG.set(0);
+		DEBUG_SIG.set(2);
 		stream.routine();
-		DEBUG_SIG.reset(0);
+		DEBUG_SIG.reset(2);
 	}
 
 	void play(const char * file_name)
@@ -70,7 +71,15 @@ public:
 			// open .dsf file, read first block for header
 			if(SD::open(file_name,  SD_READ) == SD_OK && readDSFheader()) {
 
+				if(dsf.getBitsPerSample() != 1) return;
+				if(dsf.getBlockSizePerChannel() != 4096) return;
+				if(dsf.getChannelNum() != CHNUM_STEREO) return;
+				if(dsf.getSamplingFreq() != 2822400) return;
+
+				/* playable by current implementation  */
+
 				strcpy(_activeTrackName, file_name);
+				_activeTrackPlayTime = dsf.getTotalPlayTime();
 
 				uint64_t startPos = dsf.getSampleDataP();
 				uint64_t endPos = startPos + dsf.getSampleDataSize();
@@ -163,6 +172,7 @@ private:
 
 	p_state_e _state;
 	char _activeTrackName[MAX_TRACK_NAME_SIZE];
+	uint32_t _activeTrackPlayTime; // [ms]
 
 	void setState(p_state_e state) { _state = state; };
 

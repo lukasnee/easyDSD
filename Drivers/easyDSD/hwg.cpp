@@ -135,14 +135,19 @@ i2s_state_e I2S::_state = {I2S_UNKNOWN};
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	DEBUG_SIG.toggle(1);
-	I2S::_state = I2S_STREAMING_PONG;
+	if(hi2s == &hi2s2) {
+		DEBUG_SIG.set(3);
+		I2S::_state = I2S_STREAMING_PONG;
+	}
+
 }
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	DEBUG_SIG.toggle(2);
-	I2S::_state = I2S_STREAMING_PING;
+	if(hi2s == &hi2s2) {
+		DEBUG_SIG.reset(3);
+		I2S::_state = I2S_STREAMING_PING;
+	}
 }
 
 /************************************************/

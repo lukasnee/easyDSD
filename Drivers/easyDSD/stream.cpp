@@ -39,7 +39,7 @@ bool Stream::start(
 
 		if(moveStreamPointer(_streamStartPos)) {
 
-			if(readNewPingData() && i2s.startCircularDMA(_blockSize))
+			if(readNewPingData() && readNewPongData() && i2s.startCircularDMA(_blockSize))
 					return true;/* todo start routine task in os here */
 		}
 	}
@@ -120,7 +120,8 @@ uint64_t Stream::getStreamPointer(void)
 
 bool Stream::readNewPingData(void)
 {
-	SD::lseek(getStreamPointer());
+	DEBUG_SIG.set(0);
+	//SD::lseek(getStreamPointer());
 	//left channel ping buffer
 	SD::read(i2s.left.getBufferPing(), _blockSize);
 	if(!validateRead(_blockSize))
@@ -130,21 +131,24 @@ bool Stream::readNewPingData(void)
 	if(!validateRead(_blockSize))
 		return false;
 
+	DEBUG_SIG.reset(0);
 	return true;
 }
 
 bool Stream::readNewPongData(void)
 {
-	SD::lseek(getStreamPointer());
+	DEBUG_SIG.set(1);
+	//SD::lseek(getStreamPointer());
 	//left channel pong buffer
 	SD::read(i2s.left.getBufferPong(), _blockSize);
 	if(!validateRead(_blockSize))
 		return false;
 	//right channel pong buffer
-	SD::read(i2s.right.getBufferPong(),_blockSize);
+	SD::read(i2s.right.getBufferPong(), _blockSize);
 	if(!validateRead(_blockSize))
 		return false;
 
+	DEBUG_SIG.reset(1);
 	return true;
 }
 
