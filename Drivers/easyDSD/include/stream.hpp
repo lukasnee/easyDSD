@@ -75,8 +75,7 @@ public:
 		_streamPos(0),
 		_streamEndPos(0),
 		_blockSize(0),
-		_state(SS_STANDBY),
-		_prevState(SS_STANDBY)
+		_state(SS_STANDBY)
 	{
 
 	};
@@ -93,7 +92,7 @@ private:
 	bool readNewPingData(void);
 	bool readNewPongData(void);
 	/* validate stream read */
-	bool validateRead(uint16_t expectedByteNum);
+	bool readIsValid(uint16_t expectedByteNum);
 	/* f11or tracking position within streamer. Not for user. */
 	void trackSampleDataPosPtr(uint64_t step);
 
@@ -104,7 +103,7 @@ private:
 	uint64_t _streamEndPos;
 	uint16_t _blockSize;
 	/* streamer dataflow state */
-	stream_state_e _state, _prevState;
+	stream_state_e _state;
 
 };
 

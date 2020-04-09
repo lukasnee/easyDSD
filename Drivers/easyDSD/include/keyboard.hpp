@@ -26,39 +26,39 @@ typedef enum button_map_{
 		BTN_OK,
 		BTN_DOWN,
 
-	BTN_COUNT} button_map;
+BTN_COUNT} button_map;
 
-	class Keyboard{
+class Keyboard{
 
-	public:
+public:
 
-		void updateAll(void)
-		{
-			for(uint8_t i = 0; i < BTN_COUNT; i++)
-				btn[i].read();
+	void updateAll(void)
+	{
+		for(uint8_t i = 0; i < BTN_COUNT; i++)
+			btn[i].read();
+	}
+
+	void beginAll(void)
+	{
+		for(uint8_t i = 0; i < BTN_COUNT; i++)
+			btn[i].begin();
+	}
+
+	button_map wasPressed(void)
+	{
+		updateAll();
+		for(uint8_t i = 0; i < BTN_COUNT; i++) {
+			if (btn[i].wasPressed())
+				return static_cast<button_map>(i); // wasPressed
 		}
+		return BTN_COUNT; // none presssed
+	}
 
-		void beginAll(void)
-		{
-			for(uint8_t i = 0; i < BTN_COUNT; i++)
-				btn[i].begin();
-		}
-
-		button_map wasPressed(void)
-		{
-			updateAll();
-			for(uint8_t i = 0; i < BTN_COUNT; i++) {
-				if (btn[i].wasPressed())
-					return static_cast<button_map>(i); // wasPressed
-			}
-			return BTN_COUNT; // none presssed
-		}
-
-		Button btn[BTN_COUNT] = {
-				{BTN_UP_GPIO_Port, BTN_UP_Pin},
-				{BTN_OK_GPIO_Port, BTN_OK_Pin},
-				{BTN_DOWN_GPIO_Port, BTN_DOWN_Pin}
-		};
+	Button btn[BTN_COUNT] = {
+			{BTN_UP_GPIO_Port, BTN_UP_Pin},
+			{BTN_OK_GPIO_Port, BTN_OK_Pin},
+			{BTN_DOWN_GPIO_Port, BTN_DOWN_Pin}
 	};
+};
 
 #endif /* EASYDSD_INCLUDE_KEYBOARD_HPP_ */

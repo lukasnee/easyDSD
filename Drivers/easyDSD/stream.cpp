@@ -37,10 +37,11 @@ bool Stream::start(
 		_streamEndPos = streamEndPos;
 		_blockSize = blockSize;
 
-		if(moveStreamPointer(_streamStartPos)) {
+		if(moveStreamPointer(_streamStartPos) && readNewPingData()) {
 
-			if(readNewPingData() && readNewPongData() && i2s.startCircularDMA(_blockSize))
-					return true;/* todo start routine task in os here */
+			_state = SS_STREAMING_PING;
+			if(i2s.startCircularDMA(_blockSize) && readNewPongData())
+				return true;/* todo start routine task in os here */
 		}
 	}
 	stop();
@@ -57,7 +58,7 @@ bool Stream::stop(void)
 			return false;
 
 		_streamStartPos = _streamPos = _streamEndPos = _blockSize = 0;
-		_state = _prevState = SS_STANDBY;
+		_state = SS_STANDBY;
 
 		if(SD::close() == SD_OK)
 			return true;
@@ -85,8 +86,7 @@ bool Stream::resume(void)
 	stream_state_e state = getState();
 
 	if(state == SS_PAUSED) {
-		if(readNewPingData() &&
-			i2s.startCircularDMA(_blockSize))
+		if(i2s.startCircularDMA(_blockSize))
 				return true;/* todo start routine task in os here */
 	}
 	return false;
@@ -120,36 +120,50 @@ uint64_t Stream::getStreamPointer(void)
 
 bool Stream::readNewPingData(void)
 {
-	DEBUG_SIG.set(0);
-	//SD::lseek(getStreamPointer());
-	//left channel ping buffer
-	SD::read(i2s.left.getBufferPing(), _blockSize);
-	if(!validateRead(_blockSize))
-		return false;
-	//right channel ping buffer
-	SD::read(i2s.right.getBufferPing(), _blockSize);
-	if(!validateRead(_blockSize))
-		return false;
+	bool res = true;
 
+	DEBUG_SIG.set(0);
+	//left channel ping buffer
+	if(SD::read(i2s.left.getBufferPing(), _blockSize) != SD_OK ||
+			!readIsValid(_blockSize)) {
+		res = false;
+		goto end;
+	}
+
+	//right channel ping buffer
+	if(SD::read(i2s.right.getBufferPing(), _blockSize) != SD_OK ||
+			!readIsValid(_blockSize)) {
+		res = false;
+		goto end;
+	}
+
+	end:;
 	DEBUG_SIG.reset(0);
-	return true;
+	return res;
 }
 
 bool Stream::readNewPongData(void)
 {
-	DEBUG_SIG.set(1);
-	//SD::lseek(getStreamPointer());
-	//left channel pong buffer
-	SD::read(i2s.left.getBufferPong(), _blockSize);
-	if(!validateRead(_blockSize))
-		return false;
-	//right channel pong buffer
-	SD::read(i2s.right.getBufferPong(), _blockSize);
-	if(!validateRead(_blockSize))
-		return false;
+	bool res = true;
 
+	DEBUG_SIG.set(1);
+	//left channel ping buffer
+	if(SD::read(i2s.left.getBufferPong(), _blockSize) != SD_OK ||
+			!readIsValid(_blockSize)) {
+		res = false;
+		goto end;
+	}
+
+	//right channel ping buffer
+	if(SD::read(i2s.right.getBufferPong(), _blockSize) != SD_OK ||
+			!readIsValid(_blockSize)) {
+		res = false;
+		goto end;
+	}
+
+	end:;
 	DEBUG_SIG.reset(1);
-	return true;
+	return res;
 }
 
 /* streaming routine, should be continuously active (todo fit in a os task) */
@@ -180,7 +194,7 @@ void Stream::trackSampleDataPosPtr(uint64_t step)
 	_streamPos += step;
 }
 
-inline bool Stream::validateRead(uint16_t expectedByteNum)
+inline bool Stream::readIsValid(uint16_t expectedByteNum)
 {
 	if(expectedByteNum == SD::getBytesRead())
 		trackSampleDataPosPtr(expectedByteNum);

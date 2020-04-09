@@ -59,9 +59,14 @@ public:
 
 	/* TEMPORARY: routine workaround because no OS task todo */
 	void playRoutine(void) {
-		DEBUG_SIG.set(2);
-		stream.routine();
-		DEBUG_SIG.reset(2);
+
+		while(stream.isBusy()) {
+			DEBUG_SIG.set(2);
+
+			stream.routine();
+
+			DEBUG_SIG.reset(2);
+		}
 	}
 
 	void play(const char * file_name)
@@ -89,9 +94,8 @@ public:
 				setState(P_PLAYING);
 
 				/* todo in os make it a stream task */
-				while(true) {
-					playRoutine();
-				}
+
+				playRoutine();
 			}
 		}
 	};
