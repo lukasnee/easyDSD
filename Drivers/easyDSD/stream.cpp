@@ -24,23 +24,25 @@
 
 /* NOTE. FILE MUST ALREADY BE OPENED */
 bool Stream::start(
-		uint64_t streamStartPos,
 		uint64_t streamPos,
+		uint64_t streamStartPos,
 		uint64_t streamEndPos,
 		uint16_t blockSize
 		)
 {
 	if(streamStartPos < streamEndPos &&
-			blockSize && blockSize <= i2s.left.getSplitSize()) {
+		streamPos < streamEndPos &&
+		blockSize && blockSize <= i2s.left.getSplitSize()) {
 
 		_streamStartPos = streamStartPos;
 		_streamEndPos = streamEndPos;
 		_blockSize = blockSize;
 
-		if(moveStreamPointer(_streamStartPos) && readNewPingData()) {
+		 /* move to _streamStartPos */
+		if(moveStreamPointer(streamPos)) {
 
-			_state = SS_STREAMING_PING;
-			if(i2s.startCircularDMA(_blockSize) && readNewPongData())
+			_state = SS_STARTING;
+			if(i2s.startCircularDMA(_blockSize))
 				return true;/* todo start routine task in os here */
 		}
 	}
@@ -52,15 +54,10 @@ bool Stream::stop(void)
 {
 	stream_state_e state = getState();
 
-	if(state == SS_STREAMING_PING || state == SS_STREAMING_PONG) {
-
-		if(!pause())
-			return false;
-
+	if(pause()) {
 		_streamStartPos = _streamPos = _streamEndPos = _blockSize = 0;
 		_state = SS_STANDBY;
-
-		if(SD::close() == SD_OK)
+		if(SD::close())
 			return true;
 	}
 	return false;
@@ -71,21 +68,16 @@ bool Stream::pause(void)
 {
 	stream_state_e state = getState();
 
-	if(state == SS_STREAMING_PING || state == SS_STREAMING_PONG) {
-
-		if(i2s.stopCircularDMA()) {
-			_state = SS_PAUSED;
-			return true;
-		}
+	if(isBusy() && i2s.stopCircularDMA()) {
+		_state = SS_PAUSED;
+		return true;
 	}
 	return false;
 };
 
 bool Stream::resume(void)
 {
-	stream_state_e state = getState();
-
-	if(state == SS_PAUSED) {
+	if(getState() == SS_PAUSED) {
 		if(i2s.startCircularDMA(_blockSize))
 				return true;/* todo start routine task in os here */
 	}
@@ -96,8 +88,8 @@ bool Stream::resume(void)
  * NOTE. position is interpreted in width of bytes. */
 bool Stream::moveStreamPointer(uint64_t bytewisePosition)
 {
-	if(bytewisePosition >= _streamStartPos && bytewisePosition <= _streamEndPos) {
-		if(SD::lseek(_streamStartPos + bytewisePosition) == SD_OK) {
+	if(bytewisePosition < _streamEndPos - _streamStartPos) {
+		if(SD::lseek(_streamStartPos + bytewisePosition)) {
 			_streamPos = bytewisePosition;
 			return true; // success
 		}
@@ -108,7 +100,7 @@ bool Stream::moveStreamPointer(uint64_t bytewisePosition)
 /* for moving stream pointer relative to current position. */
 bool Stream::advanceStreamPointer(uint64_t bytewiseStep)
 {
-	if(moveStreamPointer(_streamPos +  bytewiseStep))
+	if(moveStreamPointer(_streamPos + bytewiseStep))
 		return true;
 	return false;
 }
@@ -123,16 +115,17 @@ bool Stream::readNewPingData(void)
 	bool res = true;
 
 	DEBUG_SIG.set(0);
+
 	//left channel ping buffer
-	if(SD::read(i2s.left.getBufferPing(), _blockSize) != SD_OK ||
-			!readIsValid(_blockSize)) {
+	SD::read(i2s.left.getBufferPing(), _blockSize);
+	if(!readIsValid(_blockSize)) {
 		res = false;
 		goto end;
 	}
 
 	//right channel ping buffer
-	if(SD::read(i2s.right.getBufferPing(), _blockSize) != SD_OK ||
-			!readIsValid(_blockSize)) {
+	SD::read(i2s.right.getBufferPing(), _blockSize);
+	if(!readIsValid(_blockSize)) {
 		res = false;
 		goto end;
 	}
@@ -147,16 +140,17 @@ bool Stream::readNewPongData(void)
 	bool res = true;
 
 	DEBUG_SIG.set(1);
+
 	//left channel ping buffer
-	if(SD::read(i2s.left.getBufferPong(), _blockSize) != SD_OK ||
-			!readIsValid(_blockSize)) {
+	SD::read(i2s.left.getBufferPong(), _blockSize);
+	if(!readIsValid(_blockSize)) {
 		res = false;
 		goto end;
 	}
 
 	//right channel ping buffer
-	if(SD::read(i2s.right.getBufferPong(), _blockSize) != SD_OK ||
-			!readIsValid(_blockSize)) {
+	SD::read(i2s.right.getBufferPong(), _blockSize);
+	if(!readIsValid(_blockSize)) {
 		res = false;
 		goto end;
 	}
@@ -186,7 +180,7 @@ bool Stream::routine(void)
 
 bool Stream::isBusy(void)
 {
-	return (_state == SS_STREAMING_PING || _state == SS_STREAMING_PONG);
+	return (_state == SS_STREAMING_PING || _state == SS_STREAMING_PONG || _state == SS_STARTING);
 }
 
 void Stream::trackSampleDataPosPtr(uint64_t step)
@@ -196,12 +190,10 @@ void Stream::trackSampleDataPosPtr(uint64_t step)
 
 inline bool Stream::readIsValid(uint16_t expectedByteNum)
 {
-	if(expectedByteNum == SD::getBytesRead())
-		trackSampleDataPosPtr(expectedByteNum);
-
-	if(getStreamPointer() > _streamEndPos) {
+	if(expectedByteNum != SD::getBytesRead() || getStreamPointer() + _streamStartPos > _streamEndPos) {
 		stop();
 		return false;
 	}
+	trackSampleDataPosPtr(expectedByteNum);
 	return true;
 }

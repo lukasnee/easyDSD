@@ -27,22 +27,38 @@ extern "C" {
 }
 #endif
 
+
+
 void easyDSD::task_easy_dsd(void)
 {
 
 	keyboard.beginAll();
 	//Logger logger(&dsd, 0, 0, 128, 128);
-	tft.printStylePipboy();
-	tft.print("easyDSD v0.0.2 running...\n");
-	tft.updateScreen();
-
-	play("sine-176400hz-1000hz-15s-D64-2.8mhz.dsf");
-	play("04 - DAVID BOWIE - Ashes To Ashes.dsf");
-	//play("2L-125_stereo-2822k-1b_04.dsf");
-	//play("03 - Roxy Music - Avalon.dsf");
+	//	tft.print("easyDSD v0.0.2 running...\n");
+	//	tft.updateScreen();
 
 	while(true) {
 
+		if(SD::findFirst("", "*.dsf")) {
+
+			do {
+
+				tft.fillScreen(C_BLACK);
+				tft.printStylePipboy();
+				tft.print("Playing:\n\n");
+				tft.setTextSize(2);
+				tft.setTextColor(C_YELLOW);
+				tft.println(SD::file.getName());
+//				tft.println("Play time:");
+//				char time[10];
+//				sprintf(time, "%d:%d", get);
+//				tft.println(get);
+				tft.updateScreen();
+
+				play(SD::file.getName());
+
+			} while(SD::findNext());
+		}
 	}
 }
 

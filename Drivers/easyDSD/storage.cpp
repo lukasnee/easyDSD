@@ -16,7 +16,6 @@
 */
 
 #include "storage.hpp"
-#include "fatfs.h"	/* FAT32 file system */
 
 extern uint8_t retSD;    /* Return value for SD */
 extern char SDPath[4];   /* SD logical drive path */
@@ -36,9 +35,8 @@ extern "C" {
 #endif
 
 #define FR_BEGIN FRESULT res = FR_OK;
-#define FR_TRY(function) res = function; if (res != FR_OK ) errorHandler(res)
-#define FR_END fr_end:;
-#define FR_END_R fr_end:; /* ... */ return static_cast<SD_RESULT>(res);
+#define FR_TRY(function) res = function; if (res != FR_OK ) {errorHandler(res); goto fr_end;}
+#define FR_END fr_end: return (res == FR_OK) ? true : false;
 
 #define FR_DO do {
 #define FR_WHILE(function) res = function; } while(res == FR_OK)
@@ -72,47 +70,47 @@ void errorHandler(FRESULT r) {
 
 }
 
-SD_RESULT SD::mount(void) {
+bool SD::mount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, static_cast<TCHAR const*>(SDPath), 0));
-	FR_END_R
+	FR_END
 }
-SD_RESULT SD::unmount(void) {
+bool SD::unmount(void) {
 	FR_BEGIN
 	FR_TRY(f_mount(&SDFatFS, static_cast<TCHAR const*>(NULL), 0));
-	FR_END_R
+	FR_END
 }
-SD_RESULT SD::open(const char * path, SD_MODE mode)
+bool SD::open(const char * path, FA_FLAGS mode)
 {
 	FR_BEGIN
 	FR_TRY(f_open(&SDFile, path, mode));
-	FR_END_R
+	FR_END
 }
-SD_RESULT SD::close(void) {
+bool SD::close(void) {
 	FR_BEGIN
 	FR_TRY(f_close(&SDFile));
-	FR_END_R
+	FR_END
 }
 /* buff[in] - pointer from where to write data */
-SD_RESULT SD::write(const void* buff, unsigned int bytesToWrite)
+bool SD::write(const void* buff, unsigned int bytesToWrite)
 {
 	FR_BEGIN
 	FR_TRY(f_write(&SDFile, buff, bytesToWrite, &_bytesWritten));
-	FR_END_R
+	FR_END
 }
 /* buff[out] - pointer where to read in data */
-SD_RESULT SD::read(void* buff, unsigned int bytesToRead)
+bool SD::read(void* buff, unsigned int bytesToRead)
 {
 	FR_BEGIN
 	FR_TRY(f_read(&SDFile, buff, bytesToRead, &_bytesRead));
-	FR_END_R
+	FR_END
 }
 
-SD_RESULT SD::lseek(unsigned int offset)
+bool SD::lseek(unsigned int offset)
 {
 	FR_BEGIN
-	FR_TRY(f_lseek(&SDFile, tell() + offset));
-	FR_END_R
+	FR_TRY(f_lseek(&SDFile, offset));
+	FR_END
 }
 
 unsigned long SD::tell(void)
@@ -120,10 +118,21 @@ unsigned long SD::tell(void)
 	return f_tell(&SDFile);
 }
 
-SD_RESULT SD::getSDPath(char const * path)
+char const * SD::getSDPath(void)
+{
+	return SDPath;
+}
+
+bool SD::findFirst(const char * path, const char * pattern)
 {
 	FR_BEGIN
-		path = SDPath;
+	FR_TRY(f_findfirst(&_dj, &file._fno, path, pattern));
+	FR_END
+}
+
+bool SD::findNext(void) {
+	FR_BEGIN
+	FR_TRY(f_findnext(&_dj, &file._fno));
 	FR_END
 }
 

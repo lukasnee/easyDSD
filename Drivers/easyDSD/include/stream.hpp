@@ -39,6 +39,7 @@ TODO:
 typedef enum stream_state_{
 
 	SS_STANDBY,
+	SS_STARTING,
 	SS_PAUSED,
 	SS_STREAMING_PING, // While ping buffer gets streamed, new following data reads into pong buffer.
 	SS_STREAMING_PONG, // mirror process
@@ -53,7 +54,7 @@ public:
 
 	/* starts streaming on given parameters
 	 * note. file must already be opened in FAT file-system. */
-	bool start(uint64_t streamStartPos, uint64_t streamPos,
+	bool start(uint64_t streamPos, uint64_t streamStartPos,
 			uint64_t streamEndPos, uint16_t blockSize);
 	/* just stops streaming */
 	bool pause(void);

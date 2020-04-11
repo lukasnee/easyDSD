@@ -32,41 +32,9 @@ extern "C" {
 #endif
 
 #include "hwg.hpp"
+#include "fatfs.h"	/* FAT32 file system */
 
-typedef enum SD_MODE_{
-	SD_READ	= 0x01,
-	SD_WRITE = 0x02,
-	SD_OPEN_EXISTING = 0x00,
-	SD_CREATE_NEW = 0x04,
-	SD_CREATE_ALWAYS = 0x08,
-	SD_OPEN_ALWAYS = 0x10,
-	SD_OPEN_APPEND = 0x30,
-}SD_MODE;
-
-typedef enum SD_RESULT_{
-
-	SD_OK,
-	SD_DISK_ERR,
-	SD_INT_ERR,
-	SD_NOT_READY,
-	SD_NO_FILE,
-	SD_NO_PATH,
-	SD_INVALID_NAME,
-	SD_DENIED,
-	SD_EXIST,
-	SD_INVALID_OBJECT,
-	SD_WRITE_PROTECTED,
-	SD_INVALID_DRIVE,
-	SD_NOT_ENABLED,
-	SD_NO_FILESYSTEM,
-	SD_MKFS_ABORTED,
-	SD_TIMEOUT,
-	SD_LOCKED,
-	SD_NOT_ENOUGH_CORE,
-	SD_TOO_MANY_OPEN_FILES,
-	SD_INVALID_PARAMETER
-
-}SD_RESULT;
+typedef int FA_FLAGS;
 
 class SD {
 
@@ -79,24 +47,47 @@ public:
 
 	~SD(void) {};
 
-	SD_RESULT 	mount(void),
-				unmount(void),
-				open(const char * path,	SD_MODE mode),
-				close(void),
-				write(const void* buff, unsigned int bytesToWrite),
-				read(void* buff, unsigned int bytesToRead),
-				lseek(unsigned int offset),
-				getSDPath(char const * path);
+	bool 	mount(void),
+			unmount(void),
+			open(const char * path,	FA_FLAGS mode),
+			close(void),
+			write(const void* buff, unsigned int bytesToWrite),
+			read(void* buff, unsigned int bytesToRead),
+			lseek(unsigned int offset),
+			findFirst(const char * path, const char * pattern),
+			findNext(void);
 
 	unsigned long tell(void);
 
-				//scanFiles(char const * path);
+	char const * getSDPath(void);
+
+	//bool scanFiles(char const * path);
 
 	unsigned int getBytesRead(void) { return _bytesRead; };
 	unsigned int getBytesWritten(void) { return _bytesWritten; };
 
+	class File {
+
+	public:
+		unsigned long getSize(void) { return _fno.fsize; };
+		unsigned short getDate(void) { return _fno.fdate; };
+		unsigned short getTime(void) { return _fno.ftime; };
+		unsigned char getAttributes(void) { return _fno.fattrib; };
+		char * getAlternativeName(void) { return _fno.altname; };
+		char * getName(void) { return _fno.fname; };
+
+	private:
+
+		friend class SD;
+	    FILINFO _fno;    			/* File information */
+
+	} file;
+
 protected:
+
 private:
+
+    DIR _dj;         			/* Directory object */
 
 	unsigned int _bytesRead;	/* Pointer to number of bytes read */
 	unsigned int _bytesWritten;	/* Pointer to number of bytes written */

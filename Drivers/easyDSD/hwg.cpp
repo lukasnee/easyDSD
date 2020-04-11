@@ -135,19 +135,42 @@ i2s_state_e I2S::_state = {I2S_UNKNOWN};
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	if(hi2s == &hi2s2) {
+	DEBUG_SIG.set(3);
+	I2S::_state = I2S_STREAMING_PONG;
+/*	static I2S_HandleTypeDef * phI2S_waiter = NULL;
+
+	if(!phI2S_waiter) {
+
+		HAL_I2S_DMAPause(hi2s);
+		phI2S_waiter = hi2s;
+	}
+	else {
 		DEBUG_SIG.set(3);
 		I2S::_state = I2S_STREAMING_PONG;
-	}
-
+		HAL_I2S_DMAResume(phI2S_waiter);
+		phI2S_waiter = NULL;
+	}*/
 }
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	if(hi2s == &hi2s2) {
+
+	DEBUG_SIG.reset(3);
+	I2S::_state = I2S_STREAMING_PING;
+
+/*	static I2S_HandleTypeDef * phI2S_waiter = NULL;
+
+	if(!phI2S_waiter) {
+
+		HAL_I2S_DMAPause(hi2s);
+		phI2S_waiter = hi2s;
+	}
+	else {
 		DEBUG_SIG.reset(3);
 		I2S::_state = I2S_STREAMING_PING;
-	}
+		HAL_I2S_DMAResume(phI2S_waiter);
+		phI2S_waiter = NULL;
+	}*/
 }
 
 /************************************************/

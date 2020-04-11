@@ -57,25 +57,15 @@ public:
 
 	};
 
-	/* TEMPORARY: routine workaround because no OS task todo */
-	void playRoutine(void) {
-
-		while(stream.isBusy()) {
-			DEBUG_SIG.set(2);
-
-			stream.routine();
-
-			DEBUG_SIG.reset(2);
-		}
-	}
-
 	void play(const char * file_name)
 	{
-		if(!stream.isBusy() && getState() == P_STOPPED) {
+		if(getState() == P_STOPPED && !stream.isBusy()) {
 
-			// open .dsf file, read first block for header
-			if(SD::open(file_name,  SD_READ) == SD_OK && readDSFheader()) {
+			/* open .dsf file, read first block for header */
 
+			if(SD::open(file_name, FA_READ) && readDSFheader()) {
+
+				/* todo */
 				if(dsf.getBitsPerSample() != 1) return;
 				if(dsf.getBlockSizePerChannel() != 4096) return;
 				if(dsf.getChannelNum() != CHNUM_STEREO) return;
@@ -90,12 +80,22 @@ public:
 				uint64_t endPos = startPos + dsf.getSampleDataSize();
 				uint16_t blockSize = dsf.getBlockSizePerChannel();
 
-				stream.start(startPos, startPos, endPos, blockSize);
-				setState(P_PLAYING);
+				stream.start(0, startPos, endPos, blockSize);
 
 				/* todo in os make it a stream task */
+				setState(P_PLAYING);
 
-				playRoutine();
+				/* TEMPORARY: routine workaround because no OS task todo */
+				while(stream.isBusy()) {
+
+					DEBUG_SIG.set(2);
+
+					stream.routine();
+
+					DEBUG_SIG.reset(2);
+				}
+
+				setState(P_STOPPED);
 			}
 		}
 	};
@@ -185,7 +185,7 @@ private:
 		/* todo check if it is .dsf, if not, do not parse as dsf */
 		// parse dsf header
 		uint8_t * headerBlockRoughly = new uint8_t[100];
-		if(SD::read(headerBlockRoughly, 100) != SD_OK)
+		if(!SD::read(headerBlockRoughly, 100))
 			return false;
 		if(!dsf.readHeader(headerBlockRoughly))
 			return false;

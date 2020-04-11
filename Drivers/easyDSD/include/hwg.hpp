@@ -154,7 +154,7 @@ public:
 		uint16_t getSplitSize(void) { return sizeof(_buffer[PP_PING]); }
 	private:
 		buff_stream_3ar _buffer;
-	}left, right;
+	}right, left;
 
 	bool stopCircularDMA(void) {
 		if(HAL_I2S_DMAStop(&hi2s2) == HAL_OK &&
@@ -164,9 +164,10 @@ public:
 	}
 
 	bool startCircularDMA(uint16_t channelBlockSize) {
+
 		if(HAL_I2S_Transmit_DMA(&hi2s2, (uint16_t*)(left.getBuffer()), channelBlockSize) == HAL_OK &&
-			HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)(right.getBuffer()), channelBlockSize) == HAL_OK)
-			return true;
+				HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*)(right.getBuffer()), channelBlockSize) == HAL_OK)
+					return true;
 		return false;
 	}
 
